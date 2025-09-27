@@ -4,6 +4,8 @@ using CrazyRisk.Modelos;
 
 namespace CrazyRisk.LogicaJuego
 {
+
+
     public class ManejadorCombate
     {
         private Random random;
@@ -62,12 +64,9 @@ namespace CrazyRisk.LogicaJuego
         }
 
         /// <summary>
-        /// Resuelve un combate completo comparando dados según reglas de Risk
+        /// Resuelve un combate individual comparando dados según reglas de Risk
         /// </summary>
-        /// <param name="dadosAtacante">Dados del atacante ordenados</param>
-        /// <param name="dadosDefensor">Dados del defensor ordenados</param>
-        /// <returns>Resultado indicando tropas perdidas por cada lado</returns>
-        public string ResolverCombate(int[] dadosAtacante, int[] dadosDefensor)
+        public string ResolverCombateIndividual(int[] dadosAtacante, int[] dadosDefensor)
         {
             int tropasPerdidasAtacante = 0;
             int tropasPerdidasDefensor = 0;
@@ -87,8 +86,48 @@ namespace CrazyRisk.LogicaJuego
                 }
             }
 
-            return ("Resultado Combate - Atacante pierde: " + tropasPerdidasAtacante + ", Defensor pierde: " + tropasPerdidasDefensor);
+            // Construir resultado final (Provisional mientras es implementado en interfaz grafica)
+            string dadosAtacanteStr = string.Join(", ", dadosAtacante);
+            string dadosDefensorStr = string.Join(", ", dadosDefensor);
+
+            string resultado = $"=== RESULTADO DEL COMBATE ===\n";
+            resultado += $"Dados Atacante: [{dadosAtacanteStr}]\n";
+            resultado += $"Dados Defensor: [{dadosDefensorStr}]\n\n";
+            resultado += $"\n--- BAJAS ---\n";
+            resultado += $"Atacante pierde: {tropasPerdidasAtacante} tropa(s)\n";
+            resultado += $"Defensor pierde: {tropasPerdidasDefensor} tropa(s)\n";
+            resultado += $"==============================";
+
+            return resultado;
         }
+
+        /// <summary>
+        /// Valida si un ataque es legal según las reglas de Risk
+        /// </summary>
+        public bool ValidarAtaque(Territorio atacante, Territorio defensor)
+        {
+            // El territorio atacante debe tener al menos 2 tropas (deja 1 de guarnición)
+            if (atacante.CantidadTropas < 2)
+                return false;
+
+            // El defensor debe tener al menos 1 tropa
+            if (defensor.CantidadTropas < 1)
+                return false;
+
+            // No puedes atacar tus propios territorios
+            if (atacante.PropietarioId == defensor.PropietarioId)
+                return false;
+
+            // Verificar si el territorio es adyacente
+            if (!atacante.EsAdyacenteA(defensor.Id))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+
     }
 
 

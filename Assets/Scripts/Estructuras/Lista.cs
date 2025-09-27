@@ -7,77 +7,89 @@ namespace CrazyRisk.Estructuras
 {
     public class Lista<T>
     {
-        // Nodo interno
-        private class Nodo
+        // Clase interna para los nodos de la lista
+        private class Node
         {
-            public T Dato { get; set; }
-            public Nodo Siguiente { get; set; }
+            public T value { get; set; }
+            public Node next { get; set; }
             
-            public Nodo(T dato)
+            public Node(T value)
             {
-                Dato = dato;
-                Siguiente = null;
+                this.value = value;
+                this.next = null;
             }
         }
 
         // Propiedades
-        private Nodo cabeza;
-        private int tamaño;
+        private Node head;
+        private int size;
 
-        public int Tamaño => tamaño;
-        public bool EstaVacia => tamaño == 0;
 
         // Constructor
         public Lista()
         {
-            cabeza = null;
-            tamaño = 0;
+            head = null;
+            size = 0;
+        }
+
+        // get del tamano de la lista
+        public int getSize()
+        {
+            return size;
+        }
+
+        //Verifica si la lista está vacía
+        public bool EstaVacia()
+        {
+            return size == 0;
         }
 
         // Agrega un elemento al final de la lista
+
         public void Agregar(T elemento)
         {
-            Nodo nuevoNodo = new Nodo(elemento);
+            Node newNodito = new Node(elemento);
             
-            if (cabeza == null)
+            if (head == null)
             {
-                cabeza = nuevoNodo;
+                head = newNodito;
             }
             else
             {
-                Nodo actual = cabeza;
-                while (actual.Siguiente != null)
+                Node actual = head;
+                while (actual.next != null)
                 {
-                    actual = actual.Siguiente;
+                    actual = actual.next;
                 }
-                actual.Siguiente = nuevoNodo;
+                actual.next = newNodito;
             }
-            tamaño++;
+            size++;
         }
+       
 
         // Remueve el primer elemento que coincida
         public bool Remover(T elemento)
         {
-            if (cabeza == null)
+            if (head == null)
                 return false;
 
-            if (cabeza.Dato.Equals(elemento))
+            if (head.value.Equals(elemento))
             {
-                cabeza = cabeza.Siguiente;
-                tamaño--;
+                head = head.next;
+                size--;
                 return true;
             }
 
-            Nodo actual = cabeza;
-            while (actual.Siguiente != null)
+            Node actual = head;
+            while (actual.next != null)
             {
-                if (actual.Siguiente.Dato.Equals(elemento))
+                if (actual.next.value.Equals(elemento))
                 {
-                    actual.Siguiente = actual.Siguiente.Siguiente;
-                    tamaño--;
+                    actual.next = actual.next.next;
+                    size--;
                     return true;
                 }
-                actual = actual.Siguiente;
+                actual = actual.next;
             }
             
             return false;
@@ -86,15 +98,15 @@ namespace CrazyRisk.Estructuras
         // Obtiene el elemento en la posición especificada
         public T Obtener(int indice)
         {
-            if (indice < 0 || indice >= tamaño)
+            if (indice < 0 || indice >= size)
                 throw new ArgumentOutOfRangeException("Índice fuera de rango");
 
-            Nodo actual = cabeza;
+            Node actual = head;
             for (int i = 0; i < indice; i++)
             {
-                actual = actual.Siguiente;
+                actual = actual.next;
             }
-            return actual.Dato;
+            return actual.value;
         }
 
         // Indexador para acceso directo
@@ -103,27 +115,27 @@ namespace CrazyRisk.Estructuras
             get => Obtener(indice);
             set
             {
-                if (indice < 0 || indice >= tamaño)
+                if (indice < 0 || indice >= size)
                     throw new ArgumentOutOfRangeException("Índice fuera de rango");
 
-                Nodo actual = cabeza;
+                Node actual = head;
                 for (int i = 0; i < indice; i++)
                 {
-                    actual = actual.Siguiente;
+                    actual = actual.next;
                 }
-                actual.Dato = value;
+                actual.value = value;
             }
         }
 
         // Verifica si contiene un elemento
         public bool Contiene(T elemento)
         {
-            Nodo actual = cabeza;
+            Node actual = head;
             while (actual != null)
             {
-                if (actual.Dato.Equals(elemento))
+                if (actual.value.Equals(elemento))
                     return true;
-                actual = actual.Siguiente;
+                actual = actual.next;
             }
             return false;
         }
@@ -131,15 +143,15 @@ namespace CrazyRisk.Estructuras
         // Mezcla aleatoriamente - útil para territorios
         public void Mezclar(Random random)
         {
-            if (tamaño <= 1) return;
+            if (size <= 1) return;
 
-            T[] array = new T[tamaño];
-            Nodo actual = cabeza;
+            T[] array = new T[size];
+            Node actual = head;
             
-            for (int i = 0; i < tamaño; i++)
+            for (int i = 0; i < size; i++)
             {
-                array[i] = actual.Dato;
-                actual = actual.Siguiente;
+                array[i] = actual.value;
+                actual = actual.next;
             }
             
             // Fisher-Yates shuffle
@@ -152,8 +164,8 @@ namespace CrazyRisk.Estructuras
             }
 
             // Reconstruir lista mezclada
-            cabeza = null;
-            tamaño = 0;
+            head = null;
+            size = 0;
             foreach (T elemento in array)
             {
                 Agregar(elemento);
@@ -162,18 +174,18 @@ namespace CrazyRisk.Estructuras
 
         public override string ToString()
         {
-            if (EstaVacia)
+            if (EstaVacia())
                 return "Lista vacía";
 
             string resultado = "[";
-            Nodo actual = cabeza;
+            Node actual = head;
             
             while (actual != null)
             {
-                resultado += actual.Dato.ToString();
-                if (actual.Siguiente != null)
+                resultado += actual.value.ToString();
+                if (actual.next != null)
                     resultado += ", ";
-                actual = actual.Siguiente;
+                actual = actual.next;
             }
             
             resultado += "]";

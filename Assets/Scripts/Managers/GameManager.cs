@@ -1,135 +1,182 @@
 using UnityEngine;
-using CrazyRisk.Estructuras;
-using CrazyRisk.Modelos;
 using CrazyRisk.LogicaJuego;
+using CrazyRisk.Modelos;
+using CrazyRisk.Estructuras;
 
-public class GameManager : MonoBehaviour
+namespace CrazyRisk.Managers
 {
-    private DistribuidorTerritorios distribuidor;
-    private Lista<Territorio> territorios;
-
-    void Start()
+    public class GameManager : MonoBehaviour
     {
-        InicializarJuego();
-        ProbarDistribucion();
-        ProbarSistemaDados();
-        ProbarColocacionTropas();
-    }
+        [Header("Referencias de Objetos en Escena")]
+        [SerializeField] private TerritorioUI[] territoriosUI; // Array con todos los territorios de la escena
 
-    private void InicializarJuego()
-    {
-        distribuidor = new DistribuidorTerritorios();
-        territorios = distribuidor.ObtenerTodosLosTerritorios();
-        Debug.Log($"Juego inicializado con {territorios.Tamaño} territorios");
-    }
+        [Header("Configuración del Juego")]
+        [SerializeField] private string nombreJugador1 = "Jugador 1";
+        [SerializeField] private string colorJugador1 = "Azul";
+        [SerializeField] private string nombreJugador2 = "Jugador 2";
+        [SerializeField] private string colorJugador2 = "Rojo";
 
-    private void ProbarDistribucion()
-    {
-        // Distribuir territorios entre jugadores
-        distribuidor.DistribuirTerritorios("Jugador1", "Jugador2", "Neutral");
+        [Header("Colores para los territorios")]
+        [SerializeField] private Color colorJugador1Unity = Color.blue;
+        [SerializeField] private Color colorJugador2Unity = Color.red;
+        [SerializeField] private Color colorNeutralUnity = Color.gray;
 
-        // Contar territorios por propietario
-        int jugador1Count = 0;
-        int jugador2Count = 0;
-        int neutralCount = 0;
+        // Sistema de lógica del juego
+        private InicializadorJuego inicializadorJuego;
+        private Lista<Territorio> territoriosLogica;
+        private Jugador jugador1, jugador2, jugadorNeutral;
 
-        for (int i = 0; i < territorios.Tamaño; i++)
+        void Start()
         {
-            switch (territorios[i].PropietarioId)
+            InicializarJuego();
+        }
+
+        /// <summary>
+        /// Inicializa todo el sistema de juego
+        /// </summary>
+        private void InicializarJuego()
+        {
+            Debug.Log("=== INICIANDO CRAZY RISK ===");
+
+            // 1. Crear el inicializador
+            inicializadorJuego = new InicializadorJuego();
+
+            // 2. Inicializar todo el sistema lógico
+            inicializadorJuego.InicializarJuegoCompleto(nombreJugador1, colorJugador1, nombreJugador2, colorJugador2);
+
+            // 3. Obtener datos del juego
+            territoriosLogica = inicializadorJuego.getTerritorios();
+            Lista<Jugador> jugadores = inicializadorJuego.getJugadores();
+
+            jugador1 = jugadores[0];
+            jugador2 = jugadores[1];
+            jugadorNeutral = jugadores[2];
+
+            // 4. Buscar territorios en la escena
+            BuscarTerritoriosEnEscena();
+
+            // 5. Conectar lógica con interfaz
+            ConectarLogicaConInterfaz();
+
+            // 6. Actualizar colores visuales
+            ActualizarColoresTerritorios();
+
+            Debug.Log("Juego inicializado correctamente");
+            MostrarEstadisticas();
+        }
+
+        /// <summary>
+        /// Busca todos los objetos TerritorioUI en la escena
+        /// </summary>
+        private void BuscarTerritoriosEnEscena()
+        {
+            // Buscar todos los componentes TerritorioUI en la escena
+            territoriosUI = FindObjectsOfType<TerritorioUI>();
+
+            Debug.Log($"Encontrados {territoriosUI.Length} territorios en la escena");
+
+            if (territoriosUI.Length != 42)
             {
-                case "Jugador1": jugador1Count++; break;
-                case "Jugador2": jugador2Count++; break;
-                case "Neutral": neutralCount++; break;
+                Debug.LogWarning($"Se esperaban 42 territorios, pero se encontraron {territoriosUI.Length}");
             }
         }
 
-        Debug.Log($"Distribución completada:");
-        Debug.Log($"Jugador1: {jugador1Count} territorios");
-        Debug.Log($"Jugador2: {jugador2Count} territorios");
-        Debug.Log($"Neutral: {neutralCount} territorios");
-
-        // Mostrar algunos territorios como ejemplo
-        MostrarEjemploTerritorios();
-    }
-
-    private void MostrarEjemploTerritorios()
-    {
-        Debug.Log("--- Ejemplo de territorios distribuidos ---");
-        for (int i = 0; i < 10 && i < territorios.Tamaño; i++)
+        /// <summary>
+        /// Conecta cada territorio lógico con su representación visual
+        /// </summary>
+        private void ConectarLogicaConInterfaz()
         {
-            Debug.Log(territorios[i].ToString());
-        }
-    }
-
-    private void ProbarSistemaDados()
-    {
-        ManejadorCombate combate = new ManejadorCombate();
-
-        Debug.Log("=== Prueba del sistema de dados ===");
-
-        // Simular varios lanzamientos
-        for (int i = 0; i < 3; i++)
-        {
-            int[] dadosAtacante = combate.LanzarDadosAtacante(3);
-            int[] dadosDefensor = combate.LanzarDadosDefensor(2);
-
-            Debug.Log($"Lanzamiento {i + 1}:");
-            Debug.Log($"Atacante: [{dadosAtacante[0]}, {dadosAtacante[1]}, {dadosAtacante[2]}]");
-            Debug.Log($"Defensor: [{dadosDefensor[0]}, {dadosDefensor[1]}]");
-            Debug.Log($"Resultado combate: {combate.ResolverCombate(dadosAtacante, dadosDefensor)}");
-
-        }
-    }
-
-    // Metodos para probar la colocanción de tropas iniciales
-    private void ProbarColocacionTropas()
-    {
-        Debug.Log("=== Prueba del sistema de colocación de tropas ===");
-
-        // Mostrar estado inicial después de distribución
-        Debug.Log("--- Estado inicial (después de distribución) ---");
-        MostrarEstadoTropas();
-
-        // Ejecutar colocación de tropas por turnos
-        Debug.Log("--- Iniciando colocación de tropas por turnos ---");
-        distribuidor.ColocarTropasIniciales("Jugador1", "Jugador2", "Neutral");
-
-        // Mostrar estado final
-        Debug.Log("--- Estado final (después de colocación) ---");
-        MostrarEstadoTropas();
-
-        Debug.Log("=== Prueba de colocación de tropas completada ===");
-    }
-
-    private void MostrarEstadoTropas()
-    {
-        int tropasJ1 = ContarTropasJugador("Jugador1");
-        int tropasJ2 = ContarTropasJugador("Jugador2");
-        int tropasNeutral = ContarTropasJugador("Neutral");
-
-        Debug.Log($"Tropas totales - Jugador1: {tropasJ1}, Jugador2: {tropasJ2}, Neutral: {tropasNeutral}");
-
-        // Mostrar algunos ejemplos de territorios con sus tropas
-        Debug.Log("Ejemplos de territorios:");
-        int ejemplosMostrados = 0;
-        for (int i = 0; i < territorios.Tamaño && ejemplosMostrados < 6; i++)
-        {
-            Territorio territorio = territorios[i];
-            Debug.Log($"  {territorio.Nombre} ({territorio.PropietarioId}): {territorio.CantidadTropas} tropas");
-            ejemplosMostrados++;
-        }
-    }
-
-    private int ContarTropasJugador(string jugadorId)
-    {
-        int total = 0;
-        for (int i = 0; i < territorios.Tamaño; i++)
-        {
-            if (territorios[i].PropietarioId == jugadorId)
+            for (int i = 0; i < territoriosLogica.getSize(); i++)
             {
-                total += territorios[i].CantidadTropas;
+                Territorio territorioLogico = territoriosLogica[i];
+
+                // Buscar el territorio visual correspondiente por nombre
+                TerritorioUI territorioVisual = BuscarTerritorioUIPorNombre(territorioLogico.Nombre);
+
+                if (territorioVisual != null)
+                {
+                    // Conectar la lógica con la interfaz
+                    territorioVisual.InicializarTerritorio(territorioLogico);
+                    Debug.Log($"Conectado: {territorioLogico.Nombre} - Propietario: {territorioLogico.PropietarioId} - Tropas: {territorioLogico.CantidadTropas}");
+                }
+                else
+                {
+                    Debug.LogError($"No se encontró TerritorioUI para: {territorioLogico.Nombre}");
+                }
             }
         }
-        return total;
+
+        /// <summary>
+        /// Busca un TerritorioUI específico por nombre
+        /// </summary>
+        private TerritorioUI BuscarTerritorioUIPorNombre(string nombre)
+        {
+            foreach (TerritorioUI teritorioUI in territoriosUI)
+            {
+                if (teritorioUI.name == nombre || teritorioUI.GetNombreTerritorio() == nombre)
+                {
+                    return teritorioUI;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Actualiza los colores de todos los territorios según su propietario
+        /// </summary>
+        private void ActualizarColoresTerritorios()
+        {
+            foreach (TerritorioUI territorioUI in territoriosUI)
+            {
+                if (territorioUI.GetTerritorioLogico() != null)
+                {
+                    int propietarioId = territorioUI.GetTerritorioLogico().PropietarioId;
+                    Color colorTerritorio = ObtenerColorPorJugador(propietarioId);
+
+                    territorioUI.CambiarColor(colorTerritorio);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Obtiene el color correspondiente a un jugador
+        /// </summary>
+        private Color ObtenerColorPorJugador(int jugadorId)
+        {
+            if (jugadorId == jugador1.getId())
+                return colorJugador1Unity;
+            else if (jugadorId == jugador2.getId())
+                return colorJugador2Unity;
+            else if (jugadorId == jugadorNeutral.getId())
+                return colorNeutralUnity;
+
+            return Color.white; // Color por defecto
+        }
+
+        /// <summary>
+        /// Muestra estadísticas del juego en consola
+        /// </summary>
+        private void MostrarEstadisticas()
+        {
+            Debug.Log("=== ESTADÍSTICAS DEL JUEGO ===");
+            Debug.Log($"{jugador1.getNombre()}: {jugador1.getCantidadTerritorios()} territorios, {jugador1.getTotalTropas()} tropas");
+            Debug.Log($"{jugador2.getNombre()}: {jugador2.getCantidadTerritorios()} territorios, {jugador2.getTotalTropas()} tropas");
+            Debug.Log($"Neutral: {jugadorNeutral.getCantidadTerritorios()} territorios, {jugadorNeutral.getTotalTropas()} tropas");
+        }
+
+        /// <summary>
+        /// Método público para redistribuir territorios (para testing)
+        /// </summary>
+        [ContextMenu("Redistribuir Territorios")]
+        public void RedistribuirTerritorios()
+        {
+            InicializarJuego();
+        }
+
+        // Getters para que otros scripts accedan a los datos
+        public Lista<Territorio> GetTerritorios() => territoriosLogica;
+        public Jugador GetJugador1() => jugador1;
+        public Jugador GetJugador2() => jugador2;
+        public Jugador GetJugadorNeutral() => jugadorNeutral;
     }
 }

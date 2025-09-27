@@ -55,19 +55,22 @@
     <UnityVersion>2022.3.62f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\LogicaJuego\ManejadorCombate.cs" />
-    <Compile Include="Assets\Scripts\menu\CountryHandler.cs" />
+    <Compile Include="Assets\Scripts\LogicaJuego\Inicializador.cs" />
     <Compile Include="Assets\Scripts\Estructuras\Lista.cs" />
     <Compile Include="Assets\Scripts\Menu\menu.cs" />
     <Compile Include="Assets\Scripts\LogicaJuego\DistribuidorTerritorios.cs" />
     <Compile Include="Assets\Scripts\Modelos\Territorio.cs" />
     <Compile Include="Assets\Scripts\Modelos\Continente.cs" />
+    <Compile Include="Assets\Scripts\Modelos\Tarjeta.cs" />
+    <Compile Include="Assets\Scripts\LogicaJuego\ManejadorRefuerzos.cs" />
+    <Compile Include="Assets\Scripts\Modelos\Jugador.cs" />
     <Compile Include="Assets\Scripts\Managers\GameManager.cs" />
+    <Compile Include="Assets\Scripts\UI\TerritorioUI.cs" />
     <Compile Include="Assets\Scripts\Menu\CountryHandler.cs" />
   </ItemGroup>
   <ItemGroup>

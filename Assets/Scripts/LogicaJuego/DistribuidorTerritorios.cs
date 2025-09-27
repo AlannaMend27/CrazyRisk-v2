@@ -12,74 +12,10 @@ namespace CrazyRisk.LogicaJuego
         private Lista<Territorio> todosLosTerritorios;
         private Random random;
 
-        public DistribuidorTerritorios()
+        public DistribuidorTerritorios(Lista<Territorio> territorios)
         {
             random = new Random();
-            todosLosTerritorios = new Lista<Territorio>();
-            InicializarTerritorios();
-        }
-
-        /// <summary>
-        /// Inicializa los 42 territorios del mapa distribuidos en 6 continentes
-        /// </summary>
-        private void InicializarTerritorios()
-        {
-            int id = 0;
-
-            // Asia (7 territorios) - Bonificación: +7 tropas
-            todosLosTerritorios.Agregar(new Territorio(id++, "China", Continente.Asia));
-            todosLosTerritorios.Agregar(new Territorio(id++, "India", Continente.Asia));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Japón", Continente.Asia));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Rusia", Continente.Asia));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Mongolia", Continente.Asia));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Corea", Continente.Asia));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Tailandia", Continente.Asia));
-
-            // Europa (7 territorios) - Bonificación: +5 tropas
-            todosLosTerritorios.Agregar(new Territorio(id++, "Francia", Continente.Europa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Alemania", Continente.Europa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "España", Continente.Europa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Italia", Continente.Europa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Reino Unido", Continente.Europa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Polonia", Continente.Europa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Grecia", Continente.Europa));
-
-            // América del Norte (7 territorios) - Bonificación: +5 tropas
-            todosLosTerritorios.Agregar(new Territorio(id++, "Estados Unidos", Continente.AmericaNorte));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Canadá", Continente.AmericaNorte));
-            todosLosTerritorios.Agregar(new Territorio(id++, "México", Continente.AmericaNorte));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Alaska", Continente.AmericaNorte));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Groenlandia", Continente.AmericaNorte));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Cuba", Continente.AmericaNorte));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Guatemala", Continente.AmericaNorte));
-
-            // África (7 territorios) - Bonificación: +3 tropas
-            todosLosTerritorios.Agregar(new Territorio(id++, "Egipto", Continente.Africa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Sudáfrica", Continente.Africa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Nigeria", Continente.Africa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Kenia", Continente.Africa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Marruecos", Continente.Africa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Congo", Continente.Africa));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Madagascar", Continente.Africa));
-
-            // América del Sur (7 territorios) - Bonificación: +2 tropas
-            todosLosTerritorios.Agregar(new Territorio(id++, "Brasil", Continente.AmericaSur));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Argentina", Continente.AmericaSur));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Chile", Continente.AmericaSur));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Perú", Continente.AmericaSur));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Colombia", Continente.AmericaSur));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Venezuela", Continente.AmericaSur));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Uruguay", Continente.AmericaSur));
-
-            // Oceanía (7 territorios) - Bonificación: +2 tropas
-            todosLosTerritorios.Agregar(new Territorio(id++, "Australia", Continente.Oceania));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Nueva Zelanda", Continente.Oceania));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Indonesia", Continente.Oceania));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Filipinas", Continente.Oceania));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Papua Nueva Guinea", Continente.Oceania));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Fiji", Continente.Oceania));
-            todosLosTerritorios.Agregar(new Territorio(id++, "Tahití", Continente.Oceania));
-
+            todosLosTerritorios = territorios;
         }
 
         /// <summary>
@@ -89,10 +25,10 @@ namespace CrazyRisk.LogicaJuego
         /// <param name="jugador1Id">ID del primer jugador</param>
         /// <param name="jugador2Id">ID del segundo jugador</param>
         /// <param name="neutralId">ID del ejército neutral</param>
-        public void DistribuirTerritorios(string jugador1Id, string jugador2Id, string neutralId)
+        public void DistribuirTerritorios(int jugador1Id, int jugador2Id, int neutralId)
         {
             // Crear lista con 14 IDs de cada propietario
-            Lista<string> propietarios = new Lista<string>();
+            Lista<int> propietarios = new Lista<int>();
 
             for (int i = 0; i < 14; i++)
             {
@@ -105,7 +41,7 @@ namespace CrazyRisk.LogicaJuego
             propietarios.Mezclar(random);
 
             // Asignar territorios en orden aleatorio
-            for (int i = 0; i < todosLosTerritorios.Tamaño; i++)
+            for (int i = 0; i < todosLosTerritorios.getSize(); i++)
             {
                 todosLosTerritorios[i].CantidadTropas = 1;
                 todosLosTerritorios[i].PropietarioId = propietarios[i];
@@ -116,10 +52,10 @@ namespace CrazyRisk.LogicaJuego
         /// <summary>
         /// Este es el metodo que selecciona el territorio (de momento es aleatorio pero se ebe lograr que el jugador lo escoja)
         /// </summary>
-        private string SeleccionarTerritorioAleatorio(string jugadorId)
+        private string SeleccionarTerritorioAleatorio(int jugadorId)
         {
             Lista<Territorio> territorios = ObtenerTerritoriosPorJugador(jugadorId);
-            int indiceAleatorio = random.Next(territorios.Tamaño);
+            int indiceAleatorio = random.Next(territorios.getSize());
             return territorios[indiceAleatorio].Nombre;
         }
 
@@ -129,7 +65,7 @@ namespace CrazyRisk.LogicaJuego
         /// <param name="jugador1Id">ID del primer jugador</param>
         /// <param name="jugador2Id">ID del segundo jugador</param>
         /// <param name="neutralId">ID del ejército neutral</param>
-        public void ColocarTropasIniciales(string jugador1Id, string jugador2Id, string neutralId)
+        public void ColocarTropasIniciales(int jugador1Id, int jugador2Id, int neutralId)
         {
             int tropasAdicionales = 78;
 
@@ -163,13 +99,13 @@ namespace CrazyRisk.LogicaJuego
             VerificarDistribucion(jugador1Id, jugador2Id, neutralId);
         }
 
-        private void ColocarTropaEnTerritorio(string jugadorId, string nombreTerritorio)
+        private void ColocarTropaEnTerritorio(int jugadorId, string nombreTerritorio)
         {
             Lista<Territorio> territoriosJugador = ObtenerTerritoriosPorJugador(jugadorId);
 
             // Buscar el territorio específico que el jugador eligió
             Territorio territorioElegido = null;
-            for (int i = 0; i < territoriosJugador.Tamaño; i++)
+            for (int i = 0; i < territoriosJugador.getSize(); i++)
             {
                 if (territoriosJugador[i].Nombre == nombreTerritorio)
                 {
@@ -192,16 +128,17 @@ namespace CrazyRisk.LogicaJuego
         /// </summary>
         /// <param name="neutralId">ID del ejército neutral</param>
         /// <param name="cantidadTropas">Cantidad de tropas a distribuir</param>
-        private void ColocarTropasNeutral(string neutralId)
+   
+        private void ColocarTropasNeutral(int neutralId)
         {
             Lista<Territorio> territoriosNeutral = ObtenerTerritoriosPorJugador(neutralId);
 
-            if (territoriosNeutral.Tamaño == 0)
+            if (territoriosNeutral.getSize() == 0)
             {
                 throw new InvalidOperationException($"El ejército neutral no tiene territorios");
             }
 
-            int indiceAleatorio = random.Next(territoriosNeutral.Tamaño);
+            int indiceAleatorio = random.Next(territoriosNeutral.getSize());
             Territorio territorio = territoriosNeutral[indiceAleatorio];
 
             territorio.CantidadTropas++;
@@ -215,11 +152,11 @@ namespace CrazyRisk.LogicaJuego
         /// </summary>
         /// <param name="jugadorId">ID del jugador</param>
         /// <returns>Lista de territorios del jugador</returns>
-        private Lista<Territorio> ObtenerTerritoriosPorJugador(string jugadorId)
+        private Lista<Territorio> ObtenerTerritoriosPorJugador(int jugadorId)
         {
             Lista<Territorio> territoriosJugador = new Lista<Territorio>();
 
-            for (int i = 0; i < todosLosTerritorios.Tamaño; i++)
+            for (int i = 0; i < todosLosTerritorios.getSize(); i++)
             {
                 if (todosLosTerritorios[i].PropietarioId == jugadorId)
                 {
@@ -233,12 +170,12 @@ namespace CrazyRisk.LogicaJuego
         /// <summary>
         /// Cuenta el total de tropas de un jugador
         /// </summary>
-        private int ContarTropasJugador(string jugadorId)
+        private int ContarTropasJugador(int jugadorId)
         {
             int total = 0;
             Lista<Territorio> territorios = ObtenerTerritoriosPorJugador(jugadorId);
 
-            for (int i = 0; i < territorios.Tamaño; i++)
+            for (int i = 0; i < territorios.getSize(); i++)
             {
                 total += territorios[i].CantidadTropas;
             }
@@ -249,7 +186,7 @@ namespace CrazyRisk.LogicaJuego
         /// <summary>
         /// Método público para obtener territorios de un jugador (para uso externo)
         /// </summary>
-        public Lista<Territorio> ObtenerTerritoriosDeJugador(string jugadorId)
+        public Lista<Territorio> ObtenerTerritoriosDeJugador(int jugadorId)
         {
             return ObtenerTerritoriosPorJugador(jugadorId);
         }
@@ -262,7 +199,7 @@ namespace CrazyRisk.LogicaJuego
         /// <summary>
         /// Verifica que la distribución final sea correcta (40 tropas por jugador)
         /// </summary>
-        private void VerificarDistribucion(string jugador1Id, string jugador2Id, string neutralId)
+        private void VerificarDistribucion(int jugador1Id, int jugador2Id, int neutralId)
         {
             int tropasJ1 = ContarTropasJugador(jugador1Id);
             int tropasJ2 = ContarTropasJugador(jugador2Id);

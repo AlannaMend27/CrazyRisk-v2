@@ -1,101 +1,147 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using CrazyRisk.Estructuras;
+using CrazyRisk.Modelos;
 
 namespace CrazyRisk.Modelos
 {
     /// <summary>
-    /// Continentes del juego Crazy Risk con sus respectivas bonificaciones de refuerzo
+    /// Clase que representa un continente con sus territorios
     /// </summary>
-    public enum Continente
+    public class Continente
     {
-        /// <summary>
-        /// Asia - Bonificación: +7 tropas
-        /// </summary>
-        Asia,
+        private string nombre;
+        private int bonificacion;
+        private Lista<string> nombreTerritorios; // Nombres de los territorios que pertenecen a este continente
 
-        /// <summary>
-        /// Europa - Bonificación: +5 tropas
-        /// </summary>
-        Europa,
-
-        /// <summary>
-        /// América del Norte - Bonificación: +3 tropas
-        /// </summary>
-        AmericaNorte,
-
-        /// <summary>
-        /// África - Bonificación: +3 tropas
-        /// </summary>
-        Africa,
-
-        /// <summary>
-        /// América del Sur - Bonificación: +2 tropas
-        /// </summary>
-        AmericaSur,
-
-        /// <summary>
-        /// Oceanía - Bonificación: +2 tropas
-        /// </summary>
-        Oceania
-    }
-
-    /// <summary>
-    /// Clase auxiliar para obtener información sobre los continentes
-    /// </summary>
-    public static class ContinenteHelper
-    {
-        /// <summary>
-        /// Obtiene la bonificación de tropas para un continente específico
-        /// </summary>
-        /// <param name="continente">Continente del cual obtener la bonificación</param>
-        /// <returns>Número de tropas de bonificación</returns>
-        public static int ObtenerBonificacion(Continente continente)
+        public Continente(string nombre, int bonificacion)
         {
-            switch (continente)
-            {
-                case Continente.Asia:
-                    return 7;
-                case Continente.Europa:
-                    return 5;
-                case Continente.AmericaNorte:
-                    return 3;
-                case Continente.Africa:
-                    return 3;
-                case Continente.AmericaSur:
-                    return 2;
-                case Continente.Oceania:
-                    return 2;
-                default:
-                    return 0;
-            }
+            this.nombre = nombre;
+            this.bonificacion = bonificacion;
+            this.nombreTerritorios = new Lista<string>();
+            InicializarTerritorios();
+        }
+
+        // Getters y setters individuales
+        public string ObtenerNombre()
+        {
+            return nombre;
+        }
+
+        public void EstablecerNombre(string nuevoNombre)
+        {
+            nombre = nuevoNombre;
+        }
+
+        public int ObtenerBonificacion()
+        {
+            return bonificacion;
+        }
+
+        public void EstablecerBonificacion(int nuevaBonificacion)
+        {
+            bonificacion = nuevaBonificacion;
+        }
+
+        public Lista<string> ObtenerNombreTerritorios()
+        {
+            return nombreTerritorios;
         }
 
         /// <summary>
-        /// Obtiene el nombre completo del continente para mostrar en interfaz
+        /// Inicializa los territorios que pertenecen a este continente
         /// </summary>
-        /// <param name="continente">Continente del cual obtener el nombre</param>
-        /// <returns>Nombre completo del continente</returns>
-        public static string ObtenerNombreCompleto(Continente continente)
+        private void InicializarTerritorios()
         {
-            switch (continente)
+            switch (nombre)
             {
-                case Continente.Asia:
-                    return "Asia";
-                case Continente.Europa:
-                    return "Europa";
-                case Continente.AmericaNorte:
-                    return "América del Norte";
-                case Continente.Africa:
-                    return "África";
-                case Continente.AmericaSur:
-                    return "América del Sur";
-                case Continente.Oceania:
-                    return "Oceanía";
-                default:
-                    return "Desconocido";
+                case "Asia":
+                    nombreTerritorios.Agregar("China");
+                    nombreTerritorios.Agregar("India");
+                    nombreTerritorios.Agregar("Japón");
+                    nombreTerritorios.Agregar("Rusia");
+                    nombreTerritorios.Agregar("Mongolia");
+                    nombreTerritorios.Agregar("Corea");
+                    nombreTerritorios.Agregar("Tailandia");
+                    break;
+
+                case "Europa":
+                    nombreTerritorios.Agregar("Francia");
+                    nombreTerritorios.Agregar("Alemania");
+                    nombreTerritorios.Agregar("España");
+                    nombreTerritorios.Agregar("Italia");
+                    nombreTerritorios.Agregar("Reino Unido");
+                    nombreTerritorios.Agregar("Polonia");
+                    nombreTerritorios.Agregar("Grecia");
+                    break;
+
+                case "América del Norte":
+                    nombreTerritorios.Agregar("Estados Unidos");
+                    nombreTerritorios.Agregar("Canadá");
+                    nombreTerritorios.Agregar("México");
+                    nombreTerritorios.Agregar("Alaska");
+                    nombreTerritorios.Agregar("Groenlandia");
+                    nombreTerritorios.Agregar("Cuba");
+                    nombreTerritorios.Agregar("Guatemala");
+                    break;
+
+                case "África":
+                    nombreTerritorios.Agregar("Egipto");
+                    nombreTerritorios.Agregar("Sudáfrica");
+                    nombreTerritorios.Agregar("Nigeria");
+                    nombreTerritorios.Agregar("Kenia");
+                    nombreTerritorios.Agregar("Marruecos");
+                    nombreTerritorios.Agregar("Congo");
+                    nombreTerritorios.Agregar("Madagascar");
+                    break;
+
+                case "América del Sur":
+                    nombreTerritorios.Agregar("Brasil");
+                    nombreTerritorios.Agregar("Argentina");
+                    nombreTerritorios.Agregar("Chile");
+                    nombreTerritorios.Agregar("Perú");
+                    nombreTerritorios.Agregar("Colombia");
+                    nombreTerritorios.Agregar("Venezuela");
+                    nombreTerritorios.Agregar("Uruguay");
+                    break;
+
+                case "Oceanía":
+                    nombreTerritorios.Agregar("Australia");
+                    nombreTerritorios.Agregar("Nueva Zelanda");
+                    nombreTerritorios.Agregar("Indonesia");
+                    nombreTerritorios.Agregar("Filipinas");
+                    nombreTerritorios.Agregar("Papua Nueva Guinea");
+                    nombreTerritorios.Agregar("Fiji");
+                    nombreTerritorios.Agregar("Tahití");
+                    break;
             }
+        }
+
+
+        ///<summary>
+        /// Metodo que verifica la cantidad de bonus que recibira un jugador
+        /// </summary>
+        public int VerificaContinenteCompleto(Lista<Territorio> territoriosJugador)
+        {
+            int territoriosEnContinente = 0;
+
+            for (int i = 0; i < territoriosJugador.getSize(); i++)
+            {
+                Territorio territorio = territoriosJugador.Obtener(i);
+                if (territorio.getContinente() == nombre)
+                {
+                    territoriosEnContinente++;
+                }
+            }
+
+            if (territoriosEnContinente == 7)
+            {
+                return bonificacion;
+            }
+            else
+            {
+                return 0;
+            }
+
         }
     }
 }
+
