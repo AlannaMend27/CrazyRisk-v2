@@ -10,7 +10,7 @@ namespace CrazyRisk.Modelos
     {
         private string nombre;
         private int bonificacion;
-        private Lista<string> nombreTerritorios; // Nombres de los territorios que pertenecen a este continente
+        private Lista<string> nombreTerritorios;
 
         public Continente(string nombre, int bonificacion)
         {
@@ -20,7 +20,6 @@ namespace CrazyRisk.Modelos
             InicializarTerritorios();
         }
 
-        // Getters y setters individuales
         public string ObtenerNombre()
         {
             return nombre;
@@ -47,77 +46,76 @@ namespace CrazyRisk.Modelos
         }
 
         /// <summary>
-        /// Inicializa los territorios que pertenecen a este continente
+        /// Inicializa los territorios según el mapa clásico de Risk
         /// </summary>
         private void InicializarTerritorios()
         {
             switch (nombre)
             {
-                case "Asia":
-                    nombreTerritorios.Agregar("China");
-                    nombreTerritorios.Agregar("India");
-                    nombreTerritorios.Agregar("Japón");
-                    nombreTerritorios.Agregar("Rusia");
-                    nombreTerritorios.Agregar("Mongolia");
-                    nombreTerritorios.Agregar("Corea");
-                    nombreTerritorios.Agregar("Tailandia");
-                    break;
-
-                case "Europa":
-                    nombreTerritorios.Agregar("Francia");
-                    nombreTerritorios.Agregar("Alemania");
-                    nombreTerritorios.Agregar("España");
-                    nombreTerritorios.Agregar("Italia");
-                    nombreTerritorios.Agregar("Reino Unido");
-                    nombreTerritorios.Agregar("Polonia");
-                    nombreTerritorios.Agregar("Grecia");
-                    break;
-
-                case "América del Norte":
-                    nombreTerritorios.Agregar("Estados Unidos");
-                    nombreTerritorios.Agregar("Canadá");
-                    nombreTerritorios.Agregar("México");
+                case "North America":
                     nombreTerritorios.Agregar("Alaska");
-                    nombreTerritorios.Agregar("Groenlandia");
-                    nombreTerritorios.Agregar("Cuba");
-                    nombreTerritorios.Agregar("Guatemala");
+                    nombreTerritorios.Agregar("Northwest Territory");
+                    nombreTerritorios.Agregar("Greenland");
+                    nombreTerritorios.Agregar("Alberta");
+                    nombreTerritorios.Agregar("Ontario");
+                    nombreTerritorios.Agregar("Quebec");
+                    nombreTerritorios.Agregar("Western United States");
+                    nombreTerritorios.Agregar("Eastern United States");
+                    nombreTerritorios.Agregar("Central America");
                     break;
 
-                case "África":
-                    nombreTerritorios.Agregar("Egipto");
-                    nombreTerritorios.Agregar("Sudáfrica");
-                    nombreTerritorios.Agregar("Nigeria");
-                    nombreTerritorios.Agregar("Kenia");
-                    nombreTerritorios.Agregar("Marruecos");
+                case "South America":
+                    nombreTerritorios.Agregar("Venezuela");
+                    nombreTerritorios.Agregar("Brazil");
+                    nombreTerritorios.Agregar("Peru");
+                    nombreTerritorios.Agregar("Argentina");
+                    break;
+
+                case "Europe":
+                    nombreTerritorios.Agregar("Iceland");
+                    nombreTerritorios.Agregar("Great Britain");
+                    nombreTerritorios.Agregar("Scandinavia");
+                    nombreTerritorios.Agregar("Northern Europe");
+                    nombreTerritorios.Agregar("Western Europe");
+                    nombreTerritorios.Agregar("Southern Europe");
+                    nombreTerritorios.Agregar("Ukraine");
+                    break;
+
+                case "Africa":
+                    nombreTerritorios.Agregar("North Africa");
+                    nombreTerritorios.Agregar("Egypt");
+                    nombreTerritorios.Agregar("East Africa");
                     nombreTerritorios.Agregar("Congo");
+                    nombreTerritorios.Agregar("South Africa");
                     nombreTerritorios.Agregar("Madagascar");
                     break;
 
-                case "América del Sur":
-                    nombreTerritorios.Agregar("Brasil");
-                    nombreTerritorios.Agregar("Argentina");
-                    nombreTerritorios.Agregar("Chile");
-                    nombreTerritorios.Agregar("Perú");
-                    nombreTerritorios.Agregar("Colombia");
-                    nombreTerritorios.Agregar("Venezuela");
-                    nombreTerritorios.Agregar("Uruguay");
+                case "Asia":
+                    nombreTerritorios.Agregar("Ural");
+                    nombreTerritorios.Agregar("Siberia");
+                    nombreTerritorios.Agregar("Yakutsk");
+                    nombreTerritorios.Agregar("Kamchatka");
+                    nombreTerritorios.Agregar("Irkutsk");
+                    nombreTerritorios.Agregar("Mongolia");
+                    nombreTerritorios.Agregar("Japan");
+                    nombreTerritorios.Agregar("China");
+                    nombreTerritorios.Agregar("India");
+                    nombreTerritorios.Agregar("Siam");
+                    nombreTerritorios.Agregar("Middle East");
+                    nombreTerritorios.Agregar("Afghanistan");
                     break;
 
-                case "Oceanía":
-                    nombreTerritorios.Agregar("Australia");
-                    nombreTerritorios.Agregar("Nueva Zelanda");
+                case "Oceania":
                     nombreTerritorios.Agregar("Indonesia");
-                    nombreTerritorios.Agregar("Filipinas");
-                    nombreTerritorios.Agregar("Papua Nueva Guinea");
-                    nombreTerritorios.Agregar("Fiji");
-                    nombreTerritorios.Agregar("Tahití");
+                    nombreTerritorios.Agregar("New Guinea");
+                    nombreTerritorios.Agregar("Western Australia");
+                    nombreTerritorios.Agregar("Eastern Australia");
                     break;
             }
         }
 
-
-        ///<summary>
-        /// Metodo que verifica la cantidad de bonus que recibira un jugador
+        /// <summary>
+        /// Verifica si un jugador controla todos los territorios del continente
         /// </summary>
         public int VerificaContinenteCompleto(Lista<Territorio> territoriosJugador)
         {
@@ -126,22 +124,23 @@ namespace CrazyRisk.Modelos
             for (int i = 0; i < territoriosJugador.getSize(); i++)
             {
                 Territorio territorio = territoriosJugador.Obtener(i);
-                if (territorio.getContinente() == nombre)
+
+                for (int j = 0; j < nombreTerritorios.getSize(); j++)
                 {
-                    territoriosEnContinente++;
+                    if (territorio.Nombre == nombreTerritorios.Obtener(j))
+                    {
+                        territoriosEnContinente++;
+                        break;
+                    }
                 }
             }
 
-            if (territoriosEnContinente == 7)
+            if (territoriosEnContinente == nombreTerritorios.getSize())
             {
                 return bonificacion;
             }
-            else
-            {
-                return 0;
-            }
 
+            return 0;
         }
     }
 }
-

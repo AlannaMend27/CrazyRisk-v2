@@ -1,18 +1,48 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using System;
 
-public class Tarjeta : MonoBehaviour
+namespace CrazyRisk.Modelos
 {
-    // Start is called before the first frame update
-    void Start()
+    [Serializable]
+    public enum TipoTarjeta
     {
-        
+        Infanteria,
+        Caballeria,
+        Artilleria
     }
 
-    // Update is called once per frame
-    void Update()
+    [Serializable]
+    public class Tarjeta
     {
-        
+        private TipoTarjeta tipo;
+        private string territorioAsociado;
+        private bool fueUsada;
+
+        public Tarjeta(TipoTarjeta tipo, string territorio)
+        {
+            this.tipo = tipo;
+            this.territorioAsociado = territorio;
+            this.fueUsada = false;
+        }
+
+        // Getters y setters
+        public TipoTarjeta GetTipo() => tipo;
+        public string GetTerritorio() => territorioAsociado;
+        public bool FueUsada() => fueUsada;
+        public void MarcarComoUsada() => fueUsada = true;
+
+        public override string ToString()
+        {
+            return $"{tipo} - {territorioAsociado}";
+        }
+
+        // Método estático para crear tarjeta aleatoria
+        public static Tarjeta CrearTarjetaAleatoria(string territorio)
+        {
+            Random random = new Random();
+            Array valores = Enum.GetValues(typeof(TipoTarjeta));
+            TipoTarjeta tipoAleatorio = (TipoTarjeta)valores.GetValue(random.Next(valores.Length));
+
+            return new Tarjeta(tipoAleatorio, territorio);
+        }
     }
 }

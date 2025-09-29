@@ -1,23 +1,25 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+
 [RequireComponent(typeof(PolygonCollider2D))]
 public class CountryHandler : MonoBehaviour
 {
     private SpriteRenderer sprite;
-    public Color32 oldColor;
-    public Color32 hoverColor;
-    public Color32 startColor;
+    private Color oldColor;
+    private Color hoverColor;
+
     void Awake()
     {
         sprite = GetComponent<SpriteRenderer>();
-        sprite.color = startColor;
     }
+
     void OnMouseEnter()
     {
+        // Guardar el color ACTUAL en el momento del hover
         oldColor = sprite.color;
+        hoverColor = Color.Lerp(oldColor, Color.white, 0.3f);
         sprite.color = hoverColor;
     }
+
     void OnMouseExit()
     {
         sprite.color = oldColor;
