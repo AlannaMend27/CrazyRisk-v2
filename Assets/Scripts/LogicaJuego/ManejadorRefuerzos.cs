@@ -84,6 +84,19 @@ namespace CrazyRisk.LogicaJuego
         }
 
         /// <summary>
+        /// Elige un territorio aleatorio de una lista (Para colocar los refuerzos del jugador neutral)
+        /// </summary>
+        public Territorio ElegirTerritorioAleatorio(Lista<Territorio> territorios)
+        {
+            if (territorios == null || territorios.getSize() == 0)
+                return null;
+
+            int indiceAleatorio = random.Next(territorios.getSize());
+            return territorios.Obtener(indiceAleatorio);
+        }
+
+
+        /// <summary>
         /// Intercambia un trío de tarjetas por refuerzos
         /// </summary>
         public int IntercambiarTarjetas(Tarjeta t1, Tarjeta t2, Tarjeta t3)

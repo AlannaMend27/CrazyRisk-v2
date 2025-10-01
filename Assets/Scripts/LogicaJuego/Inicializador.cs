@@ -18,6 +18,7 @@ namespace CrazyRisk.LogicaJuego
         private Jugador jugador2;
         private Jugador jugadorNeutral;
         private Random random;
+        private DistribuidorTerritorios distribuidor;
 
         public InicializadorJuego()
         {
@@ -25,7 +26,17 @@ namespace CrazyRisk.LogicaJuego
             todosContinentes = new Lista<Continente>();
             jugadores = new Lista<Jugador>();
             random = new Random();
+            
         }
+
+        /// ====== SETS Y GETS =========
+        
+        public DistribuidorTerritorios GetDistribuidor()
+        {
+            return distribuidor;
+        }
+
+        /// METODOS 
 
         /// <summary>
         /// Inicializa todo el juego: territorios, continentes, jugadores y adyacencias
@@ -41,14 +52,14 @@ namespace CrazyRisk.LogicaJuego
             // 3. Configurar adyacencias entre territorios
             ConfigurarAdyacencias();
 
-            // 4. Crear jugadores
+            // 4. crear la instancia de distribuidor de territorios
+            distribuidor = new DistribuidorTerritorios(todosLosTerritorios);
+
+            // 5. Crear jugadores
             InicializarJugadores(nombreJugador1, colorJugador1, nombreJugador2, colorJugador2);
 
-            // 5. Distribuir territorios entre jugadores
+            // 6. Distribuir territorios entre jugadores
             DistribuirTerritorios();
-
-            // 6. Colocar tropas iniciales
-            ColocarTropasIniciales();
         }
 
         /// <summary>
@@ -249,8 +260,6 @@ namespace CrazyRisk.LogicaJuego
         /// </summary>
         private void DistribuirTerritorios()
         {
-            DistribuidorTerritorios distribuidor = new DistribuidorTerritorios(todosLosTerritorios);
-
             // Distribuir los 42 territorios (14 por jugador)
             distribuidor.DistribuirTerritorios(jugador1.getId(), jugador2.getId(), jugadorNeutral.getId());
 
@@ -258,19 +267,6 @@ namespace CrazyRisk.LogicaJuego
             ActualizarTerritoriosJugadores();
         }
 
-        /// <summary>
-        /// Coloca tropas iniciales usando DistribuidorTerritorios  
-        /// </summary>
-        private void ColocarTropasIniciales()
-        {
-            DistribuidorTerritorios distribuidor = new DistribuidorTerritorios(todosLosTerritorios);
-
-            // Colocar las 78 tropas adicionales (26 por jugador)
-            distribuidor.ColocarTropasIniciales(jugador1.getId(), jugador2.getId(), jugadorNeutral.getId());
-
-            // Actualizar las listas de territorios después de colocar tropas
-            ActualizarTerritoriosJugadores();
-        }
 
         /// <summary>
         /// Actualiza las listas de territorios controlados por cada jugador

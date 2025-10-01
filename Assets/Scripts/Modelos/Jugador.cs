@@ -33,7 +33,9 @@ namespace CrazyRisk.Modelos
         // Constructor para jugador neutral
         public static Jugador CrearJugadorNeutral(int id, string color = "Gris")
         {
-            return new Jugador(id, "Neutral", color, true);
+            Jugador neutral = new Jugador(id, "Neutral", color);
+            neutral.setEsNeutral(true);
+            return neutral;
         }
 
 
@@ -72,6 +74,12 @@ namespace CrazyRisk.Modelos
         {
             return esNeutral;
         }
+
+        public void setEsNeutral(bool data)
+        {
+            this.esNeutral = data;
+        }
+
 
         public Lista<Territorio> getTerritoriosControlados()
         {

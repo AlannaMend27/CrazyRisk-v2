@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using CrazyRisk.Modelos;
@@ -14,7 +14,7 @@ namespace CrazyRisk.Managers
         [SerializeField] private TextMeshProUGUI textoNombre;
         [SerializeField] private GameObject bordeSeleccion;
 
-        [Header("Configuraci�n")]
+        [Header("Configuración")]
         [SerializeField] private string nombreTerritorio;
 
         // Referencias
@@ -128,10 +128,51 @@ namespace CrazyRisk.Managers
 
         void OnMouseDown()
         {
-            if (territorioLogico == null || manejadorTurnos == null) return;
+            Debug.Log($"Click detectado en: {gameObject.name}");
+
+            if (gameManager == null)
+            {
+                Debug.LogError("GameManager no asignado");
+                return;
+            }
+
+            // Si estamos en fase de preparación
+            if (gameManager.EstaEnFasePreparacion())
+            {
+                ManejarFasePreparacion();
+                return;
+            }
+
+            // verificar que existe
+            if (manejadorTurnos == null)
+            {
+                Debug.Log("ManejadorTurnos era null, buscando...");
+                manejadorTurnos = FindObjectOfType<ManejadorTurnos>();
+            }
+
+            // verificar que no sea null despues de buscar
+            if (manejadorTurnos == null)
+            {
+                Debug.LogError("ManejadorTurnos no encontrado en la escena");
+                return;
+            }
+
+            if (territorioLogico == null)
+            {
+                Debug.LogError("TerritorioLogico es null");
+                return;
+            }
 
             Jugador jugadorActual = manejadorTurnos.GetJugadorActual();
+
+            if (jugadorActual == null)
+            {
+                Debug.LogError("JugadorActual es null");
+                return;
+            }
+
             ManejadorTurnos.FaseTurno faseActual = manejadorTurnos.GetFaseActual();
+            Debug.Log($"Fase actual: {faseActual}");
 
             switch (faseActual)
             {
@@ -149,20 +190,69 @@ namespace CrazyRisk.Managers
             }
         }
 
+        private void ManejarFasePreparacion()
+        {
+            if (territorioLogico == null)
+            {
+                Debug.LogError($"TerritorioLogico no asignado en {gameObject.name}");
+                return;
+            }
+
+            Debug.Log($"Intentando colocar tropa en: {territorioLogico.Nombre}");
+
+            bool exito = gameManager.IntentarColocarTropaPreparacion(territorioLogico.Nombre);
+
+            if (exito)
+            {
+                ActualizarInterfaz();
+                Debug.Log($"Tropa colocada exitosamente en {territorioLogico.Nombre}");
+            }
+        }
+
         private void ManejarRefuerzos(Jugador jugadorActual)
         {
-            if (territorioLogico.PropietarioId == jugadorActual.getId() &&
-                manejadorTurnos.PuedeColocarRefuerzos())
+            // Debug detallado para ver qué está pasando
+            Debug.Log($"=== DEBUG REFUERZOS ===");
+            Debug.Log($"Territorio: {territorioLogico.Nombre}");
+            Debug.Log($"PropietarioId del territorio: {territorioLogico.PropietarioId}");
+            Debug.Log($"Id del jugador actual: {jugadorActual.getId()}");
+            Debug.Log($"Puede colocar refuerzos: {manejadorTurnos.PuedeColocarRefuerzos()}");
+            Debug.Log($"Son iguales: {territorioLogico.PropietarioId == jugadorActual.getId()}");
+            Debug.Log($"======================");
+
+            // Verificación más robusta
+            if (manejadorTurnos == null)
+            {
+                Debug.LogError("ManejadorTurnos es null");
+                return;
+            }
+
+            if (!manejadorTurnos.PuedeColocarRefuerzos())
+            {
+                Debug.LogWarning("No es fase de refuerzos o no hay refuerzos disponibles");
+                return;
+            }
+
+            if (jugadorActual == null)
+            {
+                Debug.LogError("JugadorActual es null");
+                return;
+            }
+
+            // Comparación segura usando string para evitar problemas de tipos
+            bool esPropietario = territorioLogico.PropietarioId.ToString() == jugadorActual.getId().ToString();
+
+            if (esPropietario)
             {
                 territorioLogico.AgregarTropas(1);
                 manejadorTurnos.UsarRefuerzo();
                 ActualizarInterfaz();
-
-                Debug.Log($"{jugadorActual.getNombre()} coloc� 1 refuerzo en {territorioLogico.Nombre}");
+                Debug.Log($"✓ {jugadorActual.getNombre()} colocó 1 refuerzo en {territorioLogico.Nombre}");
             }
             else
             {
-                Debug.Log("Solo puedes colocar refuerzos en tus propios territorios");
+                Debug.LogWarning($"✗ {jugadorActual.getNombre()} intentó colocar refuerzo en territorio ajeno");
+                Debug.LogWarning($"   Propietario: {territorioLogico.PropietarioId} | Jugador: {jugadorActual.getId()}");
             }
         }
 
@@ -191,7 +281,7 @@ namespace CrazyRisk.Managers
             if (territorioLogico.PropietarioId == jugadorActual.getId())
             {
                 SeleccionarTerritorio();
-                Debug.Log($"Territorio seleccionado para planeaci�n: {territorioLogico.Nombre}");
+                Debug.Log($"Territorio seleccionado para planeación: {territorioLogico.Nombre}");
             }
         }
 

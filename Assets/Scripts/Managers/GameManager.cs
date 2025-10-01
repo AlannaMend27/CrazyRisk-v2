@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using CrazyRisk.LogicaJuego;
 using CrazyRisk.Modelos;
 using CrazyRisk.Estructuras;
@@ -12,7 +12,7 @@ namespace CrazyRisk.Managers
         [Header("Referencias de Objetos en Escena")]
         [SerializeField] private TerritorioUI[] territoriosUI;
 
-        [Header("Configuraci�n del Juego")]
+        [Header("Configuración del Juego")]
         [SerializeField] private string nombreJugador1 = "Jugador 1";
         [SerializeField] private string colorJugador1 = "Verde";
         [SerializeField] private string nombreJugador2 = "Jugador 2";
@@ -26,11 +26,19 @@ namespace CrazyRisk.Managers
         [SerializeField] private GameObject panelVictoria;
         [SerializeField] private TextMeshProUGUI textoGanador;
 
-        // Sistema de l�gica del juego
+        [Header("Panel datos")]
+        [SerializeField] private GameObject PanelDatos;
+        [SerializeField] private TextMeshProUGUI DatosFase;
+
+        // Sistema de lógica del juego
         private InicializadorJuego inicializadorJuego;
         private Lista<Territorio> territoriosLogica;
         private Jugador jugador1, jugador2, jugadorNeutral;
         private DetectorVictoria detectorVictoria;
+
+        //Estado de preparacion
+        private bool enFasePreparacion = false;
+        private DistribuidorTerritorios distribuidor;
 
         // Sistema de red
         private AdministradorRed administradorRed;
@@ -41,6 +49,9 @@ namespace CrazyRisk.Managers
         {
             if (panelVictoria != null)
                 panelVictoria.SetActive(false);
+
+            if (PanelDatos != null)
+                PanelDatos.SetActive(false);
 
             detectorVictoria = new DetectorVictoria();
             VerificarJuegoEnRed();
@@ -104,6 +115,8 @@ namespace CrazyRisk.Managers
             jugador2 = jugadores[1];
             jugadorNeutral = jugadores[2];
 
+            distribuidor = inicializadorJuego.GetDistribuidor();
+
             BuscarTerritoriosEnEscena();
             ConectarLogicaConInterfaz();
             ActualizarColoresTerritorios();
@@ -111,6 +124,213 @@ namespace CrazyRisk.Managers
             Debug.Log("Juego inicializado correctamente");
             MostrarEstadisticas();
 
+            IniciarFasePreparacion();
+        }
+
+        /// <summary>
+        /// Inicia la fase de preparación manual
+        /// </summary>
+        private void IniciarFasePreparacion()
+        {
+            enFasePreparacion = true;
+
+            if (distribuidor == null)
+            {
+                Debug.LogError("❌ Distribuidor no está disponible");
+                return;
+            }
+
+            Debug.Log(">>> Suscribiendo eventos del distribuidor...");
+
+            distribuidor.OnTropaColocada += ActualizarTerritorioEspecifico;
+            distribuidor.OnCambioTurno += ActualizarPanelDatos;
+            distribuidor.OnPreparacionCompletada += FinalizarFasePreparacion;
+
+            Debug.Log(">>> Eventos suscritos correctamente");
+
+            distribuidor.IniciarFasePreparacion(1, 2, 3);
+
+            if (PanelDatos != null)
+                PanelDatos.SetActive(true);
+
+            ActualizarPanelDatos();
+        }
+
+        /// <summary>
+        /// Actualiza un territorio específico cuando se coloca una tropa
+        /// </summary>
+        public void ActualizarTerritorioEspecifico(string nombreTerritorio)
+        {
+            TerritorioUI territorio = BuscarTerritorioUIPorNombre(nombreTerritorio);
+
+            if (territorio != null)
+            {
+                territorio.ActualizarInterfaz();
+                Debug.Log($"✓ UI actualizada para: {nombreTerritorio}");
+            }
+            else
+            {
+                Debug.LogWarning($"No se encontró TerritorioUI para: {nombreTerritorio}");
+            }
+
+            
+        }
+
+        /// <summary>
+        /// Actualiza la lista de territorios controlados por cada jugador para luego iniciar la fase
+        /// </summary>
+        private void ActualizarTerritoriosJugadores()
+        {
+            // Limpiar listas actuales
+            jugador1.setTerritoriosControlados(new Lista<Territorio>());
+            jugador2.setTerritoriosControlados(new Lista<Territorio>());
+            jugadorNeutral.setTerritoriosControlados(new Lista<Territorio>());
+
+            // Reagrupar territorios según el propietario actual
+            for (int i = 0; i < territoriosLogica.getSize(); i++)
+            {
+                Territorio territorio = territoriosLogica[i];
+
+                if (territorio.PropietarioId == jugador1.getId())
+                {
+                    jugador1.getTerritoriosControlados().Agregar(territorio);
+                }
+                else if (territorio.PropietarioId == jugador2.getId())
+                {
+                    jugador2.getTerritoriosControlados().Agregar(territorio);
+                }
+                else if (territorio.PropietarioId == jugadorNeutral.getId())
+                {
+                    jugadorNeutral.getTerritoriosControlados().Agregar(territorio);
+                }
+            }
+
+            Debug.Log($"✓ Territorios actualizados:");
+            Debug.Log($"  {jugador1.getNombre()}: {jugador1.getCantidadTerritorios()} territorios");
+            Debug.Log($"  {jugador2.getNombre()}: {jugador2.getCantidadTerritorios()} territorios");
+            Debug.Log($"  Neutral: {jugadorNeutral.getCantidadTerritorios()} territorios");
+        }
+
+        /// <summary>
+        /// Actualiza el panel de datos según el estado actual del juego
+        /// </summary>
+        public void ActualizarPanelDatos()
+        {
+            if (DatosFase == null) return;
+
+            // Durante preparación
+            if (enFasePreparacion && distribuidor != null)
+            {
+                int jugadorActualId = distribuidor.GetJugadorActual();
+                int tropasRestantes = distribuidor.GetTropasRestantesJugadorActual();
+                string nombreJugador = distribuidor.GetNombreJugadorActual();
+
+                DatosFase.text = $"FASE DE PREPARACIÓN\n" +
+                                $"Turno: {nombreJugador}\n" +
+                                $"Tropas restantes: {tropasRestantes}";
+            }
+            // Durante el juego normal
+            else if (manejadorTurnos != null)
+            {
+                Jugador jugadorActual = manejadorTurnos.GetJugadorActual();
+                string fase = manejadorTurnos.GetFaseActual().ToString();
+                int refuerzos = manejadorTurnos.GetRefuerzosDisponibles();
+
+                string textoFase = fase switch
+                {
+                    "Refuerzos" => $"FASE DE REFUERZOS\n" +
+                                  $"Turno: {jugadorActual.getNombre()}\n" +
+                                  $"Refuerzos restantes: {refuerzos}",
+
+                    "Ataque" => $"FASE DE ATAQUE\n" +
+                               $"Turno: {jugadorActual.getNombre()}\n" +
+                               $"Selecciona territorio para atacar",
+
+                    "Planeacion" => $"FASE DE PLANEACIÓN\n" +
+                                   $"Turno: {jugadorActual.getNombre()}\n" +
+                                   $"Mueve tropas entre tus territorios",
+
+                    _ => $"Turno: {jugadorActual.getNombre()}"
+                };
+
+                DatosFase.text = textoFase;
+            }
+        }
+
+        /// <summary>
+        /// Actualiza la visualización de todos los territorios
+        /// </summary>
+        private void ActualizarVisualizacionCompleta()
+        {
+            foreach (TerritorioUI territorioUI in territoriosUI)
+            {
+                if (territorioUI != null)
+                {
+                    territorioUI.ActualizarInterfaz();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Intenta colocar una tropa durante la preparación
+        /// </summary>
+        public bool IntentarColocarTropaPreparacion(string nombreTerritorio)
+        {
+            Debug.Log($">>> IntentarColocarTropaPreparacion llamado para: {nombreTerritorio}");
+            Debug.Log($"    enFasePreparacion: {enFasePreparacion}");
+            Debug.Log($"    distribuidor != null: {distribuidor != null}");
+
+            if (!enFasePreparacion || distribuidor == null)
+            {
+                Debug.LogWarning("No estás en fase de preparación");
+                return false;
+            }
+
+            bool exito = distribuidor.IntentarColocarTropa(nombreTerritorio);
+
+            if (exito)
+            {
+                // Actualizar visualización del territorio
+                TerritorioUI territorioUI = BuscarTerritorioUIPorNombre(nombreTerritorio);
+                if (territorioUI != null)
+                {
+                    territorioUI.ActualizarInterfaz();
+                    Debug.Log($"UI actualizada para: {nombreTerritorio}");
+                }
+
+                // Actualizar UI de preparación
+                ActualizarPanelDatos();
+
+            }
+
+            return exito;
+        }
+
+        /// <summary>
+        /// Finaliza la fase de preparación e inicia el juego normal
+        /// </summary>
+        private void FinalizarFasePreparacion()
+        {
+            Debug.Log(">>> GAME MANAGER: FinalizarFasePreparacion LLAMADO <<<");
+            enFasePreparacion = false;
+
+            Debug.Log("=== FINALIZANDO FASE DE PREPARACIÓN ===");
+
+            // Desuscribirse de eventos
+            distribuidor.OnTropaColocada -= ActualizarTerritorioEspecifico;
+            distribuidor.OnCambioTurno -= ActualizarPanelDatos;
+            distribuidor.OnPreparacionCompletada -= FinalizarFasePreparacion;
+
+            // cambiar el texto del panel de información sobre la fase
+            ActualizarPanelDatos();
+            
+
+            // Actualizar territorios antes de iniciar turnos
+            ActualizarTerritoriosJugadores();
+
+            Debug.Log("🎮 ¡FASE DE PREPARACIÓN COMPLETADA! Iniciando partida...");
+
+            // Iniciar el sistema de turnos
             InicializarSistemaTurnos();
         }
 
@@ -129,6 +349,11 @@ namespace CrazyRisk.Managers
 
             Lista<Jugador> jugadores = inicializadorJuego.getJugadores();
             Lista<Continente> continentes = inicializadorJuego.getContinentes();
+
+            //Actualizar territorios de cada jugador antes de iniciar
+            ActualizarTerritoriosJugadores();
+
+
             manejadorTurnos.InicializarTurnos(jugadores, continentes);
 
             Debug.Log("Sistema de turnos inicializado");
@@ -147,6 +372,18 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Actualiza la UI durante la fase de preparación
+        /// </summary>
+        private void ActualizarDurantePreparacion()
+        {
+            if (enFasePreparacion)
+            {
+                ActualizarVisualizacionCompleta();
+                ActualizarPanelDatos();
+            }
+        }
+
         private void MostrarPanelVictoria(Jugador ganador)
         {
             if (panelVictoria != null)
@@ -154,12 +391,12 @@ namespace CrazyRisk.Managers
                 panelVictoria.SetActive(true);
 
                 if (textoGanador != null)
-                    textoGanador.text = $"�{ganador.getNombre()} ha conquistado el mundo!";
+                    textoGanador.text = $"¡{ganador.getNombre()} ha conquistado el mundo!";
 
                 Time.timeScale = 0;
             }
 
-            Debug.Log($"�VICTORIA! {ganador.getNombre()} ha ganado la partida");
+            Debug.Log($"¡VICTORIA! {ganador.getNombre()} ha ganado la partida");
         }
 
         private void BuscarTerritoriosEnEscena()
@@ -191,14 +428,14 @@ namespace CrazyRisk.Managers
                 }
                 else
                 {
-                    Debug.LogError($"No se encontr� TerritorioUI para: {territorioLogico.Nombre}");
+                    Debug.LogError($"No se encontró TerritorioUI para: {territorioLogico.Nombre}");
                 }
             }
         }
 
         private void ConectarEventosRed(TerritorioUI territorioUI)
         {
-            // Implementaci�n futura
+            // Implementación futura
         }
 
         private TerritorioUI BuscarTerritorioUIPorNombre(string nombre)
@@ -238,7 +475,7 @@ namespace CrazyRisk.Managers
 
         private void MostrarEstadisticas()
         {
-            Debug.Log("=== ESTAD�STICAS DEL JUEGO ===");
+            Debug.Log("=== ESTADÍSTICAS DEL JUEGO ===");
             Debug.Log($"{jugador1.getNombre()}: {jugador1.getCantidadTerritorios()} territorios, {jugador1.getTotalTropas()} tropas");
             Debug.Log($"{jugador2.getNombre()}: {jugador2.getCantidadTerritorios()} territorios, {jugador2.getTotalTropas()} tropas");
             Debug.Log($"Neutral: {jugadorNeutral.getCantidadTerritorios()} territorios, {jugadorNeutral.getTotalTropas()} tropas");
@@ -277,5 +514,27 @@ namespace CrazyRisk.Managers
         public bool EsJuegoEnRed() => esJuegoEnRed;
         public AdministradorRed GetAdministradorRed() => administradorRed;
         public int GetCantidadJugadoresRed() => cantidadJugadoresRed;
+        public bool EstaEnFasePreparacion() => enFasePreparacion;
+
+        /// <summary>
+        /// Obtiene el jugador actual (preparación o juego)
+        /// </summary>
+        public Jugador GetJugadorActual()
+        {
+            if (enFasePreparacion && distribuidor != null)
+            {
+                int idActual = distribuidor.GetJugadorActual();
+
+                if (idActual == 1) return jugador1;
+                if (idActual == 2) return jugador2;
+                if (idActual == 3) return jugadorNeutral;
+            }
+            else if (manejadorTurnos != null)
+            {
+                return manejadorTurnos.GetJugadorActual();
+            }
+
+            return null;
+        }
     }
 }
