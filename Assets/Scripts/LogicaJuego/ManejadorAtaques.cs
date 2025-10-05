@@ -1,6 +1,7 @@
 using UnityEngine;
 using CrazyRisk.Estructuras;
 using CrazyRisk.Modelos;
+using CrazyRisk.Managers;
 
 namespace CrazyRisk.LogicaJuego
 {
@@ -69,13 +70,46 @@ namespace CrazyRisk.LogicaJuego
 
             if (!manejadorCombate.ValidarAtaque(territorioAtacante, territorioDefensor))
             {
-                Debug.LogError("Ataque inválido");
+                Debug.LogError("Ataque invalido");
                 return null;
             }
 
             int dadosAtacante = territorioAtacante.MaximoDadosAtaque();
             int dadosDefensor = Mathf.Min(territorioDefensor.CantidadTropas, 2);
 
+            return EjecutarAtaqueConDados(dadosAtacante, dadosDefensor);
+        }
+
+        public ResultadoAtaque EjecutarAtaqueConDados(int dadosAtacante, int dadosDefensor)
+        {
+            if (territorioAtacante == null || territorioDefensor == null)
+            {
+                Debug.LogError("Debes seleccionar territorios atacante y defensor");
+                return null;
+            }
+
+            if (!manejadorCombate.ValidarAtaque(territorioAtacante, territorioDefensor))
+            {
+                Debug.LogError("Ataque invalido");
+                return null;
+            }
+
+            int maxDadosAtacante = territorioAtacante.MaximoDadosAtaque();
+            int maxDadosDefensor = Mathf.Min(territorioDefensor.CantidadTropas, 2);
+
+            if (dadosAtacante < 1 || dadosAtacante > maxDadosAtacante)
+            {
+                Debug.LogError($"Dados atacante invalidos. Rango: 1-{maxDadosAtacante}");
+                return null;
+            }
+
+            if (dadosDefensor < 1 || dadosDefensor > maxDadosDefensor)
+            {
+                Debug.LogError($"Dados defensor invalidos. Rango: 1-{maxDadosDefensor}");
+                return null;
+            }
+
+            ManagerSonidos.Instance?.ReproducirDados();
             int[] resultadosAtacante = manejadorCombate.LanzarDadosAtacante(dadosAtacante);
             int[] resultadosDefensor = manejadorCombate.LanzarDadosDefensor(dadosDefensor);
 
@@ -87,37 +121,65 @@ namespace CrazyRisk.LogicaJuego
 
             CalcularBajas(resultadosAtacante, resultadosDefensor, resultado);
 
+            // Aplicar bajas
+            ManagerSonidos.Instance?.ReproducirAtaque();
+
             territorioAtacante.CantidadTropas -= resultado.tropasPerdidasAtacante;
             territorioDefensor.CantidadTropas -= resultado.tropasPerdidasDefensor;
 
+            // CONQUISTA AUTOMATICA si defensor queda en 0
             if (territorioDefensor.CantidadTropas == 0)
             {
                 resultado.conquistado = true;
+
+                // Mover AUTOMATICAMENTE las tropas que atacaron
+                int tropasAMover = dadosAtacante;
+
+                // Validar que haya suficientes
+                if (territorioAtacante.CantidadTropas > tropasAMover)
+                {
+                    int propietarioAnterior = territorioDefensor.PropietarioId;
+
+                    territorioAtacante.CantidadTropas -= tropasAMover;
+                    territorioDefensor.CantidadTropas = tropasAMover;
+                    territorioDefensor.PropietarioId = territorioAtacante.PropietarioId;
+
+                    Debug.Log($"CONQUISTA: {territorioDefensor.Nombre} conquistado! {tropasAMover} tropas movidas.");
+
+                    // Dar tarjeta
+                    GameManager gameManager = UnityEngine.Object.FindObjectOfType<GameManager>();
+                    if (gameManager != null)
+                    {
+                        Jugador jugador = null;
+
+                        if (gameManager.GetJugador1().getId() == territorioAtacante.PropietarioId)
+                            jugador = gameManager.GetJugador1();
+                        else if (gameManager.GetJugador2().getId() == territorioAtacante.PropietarioId)
+                            jugador = gameManager.GetJugador2();
+
+                        if (jugador != null && !jugador.getEsNeutral())
+                        {
+                            Tarjeta nuevaTarjeta = Tarjeta.CrearTarjetaAleatoria(territorioDefensor.Nombre);
+                            jugador.getTarjetas().Agregar(nuevaTarjeta);
+
+                            Debug.Log($"{jugador.getNombre()} obtuvo tarjeta: {nuevaTarjeta}!");
+
+                            if (jugador.getTarjetas().getSize() >= 6)
+                            {
+                                Debug.LogWarning($"{jugador.getNombre()} tiene 6 tarjetas. Debe intercambiar!");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.LogError("No hay suficientes tropas para conquistar");
+                    resultado.conquistado = false;
+                }
             }
 
             Debug.Log($"Ataque ejecutado: {resultado.ToString()}");
             return resultado;
-        }
-
-        public bool ConquistarTerritorio(int nuevoPropietarioId, int tropasAMover)
-        {
-            if (territorioDefensor == null || territorioDefensor.CantidadTropas > 0)
-            {
-                Debug.LogError("No se puede conquistar este territorio");
-                return false;
-            }
-
-            if (territorioAtacante == null || territorioAtacante.CantidadTropas <= tropasAMover)
-            {
-                Debug.LogError("No tienes suficientes tropas disponibles");
-                return false;
-            }
-
-            territorioDefensor.CambiarPropietario(nuevoPropietarioId, tropasAMover);
-            territorioAtacante.CantidadTropas -= tropasAMover;
-
-            Debug.Log($"{territorioDefensor.Nombre} conquistado por jugador {nuevoPropietarioId}");
-            return true;
         }
 
         private void CalcularBajas(int[] dadosAtacante, int[] dadosDefensor, ResultadoAtaque resultado)
@@ -166,7 +228,7 @@ namespace CrazyRisk.LogicaJuego
             msg += $"Bajas - Atacante: {tropasPerdidasAtacante}, Defensor: {tropasPerdidasDefensor}";
 
             if (conquistado)
-                msg += "\n¡TERRITORIO CONQUISTADO!";
+                msg += "\nTERRITORIO CONQUISTADO!";
 
             return msg;
         }

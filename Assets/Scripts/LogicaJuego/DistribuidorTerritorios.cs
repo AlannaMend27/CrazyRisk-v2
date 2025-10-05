@@ -118,6 +118,7 @@ namespace CrazyRisk.LogicaJuego
             //  Colocar tropa
             territorio.CantidadTropas++;
             tropasRestantes[jugadorActualIndex]--;
+            CrazyRisk.Managers.ManagerSonidos.Instance?.ReproducirColocarTropas();
 
             UnityEngine.Debug.Log($"✓ {GetNombreJugadorActual()} colocó 1 tropa en {nombreTerritorio} (Total: {territorio.CantidadTropas})");
             UnityEngine.Debug.Log($"   Tropas restantes: {tropasRestantes[jugadorActualIndex]}");

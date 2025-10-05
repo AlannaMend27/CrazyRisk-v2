@@ -5,3 +5,5 @@ obj/
 UserSettings/
 *.tmp
 *.log
+*.meta
+.vs/

@@ -8,7 +8,7 @@ namespace CrazyRisk.Managers
     public class VisualizadorDados : MonoBehaviour
     {
         [Header("Sprites de Dados (1-6)")]
-        [SerializeField] private Sprite[] spritesDados; // Array de 6 sprites
+        [SerializeField] private Sprite[] spritesDados;
 
         [Header("Referencias UI")]
         [SerializeField] private GameObject panelCombate;
@@ -24,7 +24,7 @@ namespace CrazyRisk.Managers
         [SerializeField] private Image dado1Defensor;
         [SerializeField] private Image dado2Defensor;
 
-        [Header("Botón")]
+        [Header("Boton")]
         [SerializeField] private Button botonContinuar;
 
         private ManejadorCombate manejadorCombate;
@@ -39,9 +39,38 @@ namespace CrazyRisk.Managers
             if (botonContinuar != null)
                 botonContinuar.onClick.AddListener(CerrarPanel);
         }
+        public void MostrarCombateConDados(string nombreAtacante, string nombreDefensor, int dadosAtacante, int dadosDefensor)
+        {
+            if (manejadorCombate == null)
+                manejadorCombate = new ManejadorCombate();
+
+            // Lanzar dados con las cantidades especificadas
+            int[] resultadosAtacante = manejadorCombate.LanzarDadosAtacante(dadosAtacante);
+            int[] resultadosDefensor = manejadorCombate.LanzarDadosDefensor(dadosDefensor);
+
+            if (panelCombate != null)
+            {
+                panelCombate.SetActive(true);
+                panelCombate.transform.SetAsLastSibling();
+            }
+
+            if (textoAtaque != null)
+                textoAtaque.text = nombreAtacante + " ataca a " + nombreDefensor;
+
+            // Los dados no usados se ocultarán automáticamente
+            MostrarDadosAtacante(resultadosAtacante);
+            MostrarDadosDefensor(resultadosDefensor);
+
+            string resultado = manejadorCombate.ResolverCombateIndividual(resultadosAtacante, resultadosDefensor);
+            if (textoResultado != null)
+                textoResultado.text = ExtraerResultadoSimple(resultado);
+        } 
 
         public void MostrarCombate(string nombreAtacante, string nombreDefensor, int tropasAtacante, int tropasDefensor)
         {
+            if (manejadorCombate == null)
+                manejadorCombate = new ManejadorCombate();
+
             int dadosAtacante = Mathf.Min(tropasAtacante - 1, 3);
             int dadosDefensor = Mathf.Min(tropasDefensor, 2);
 
@@ -49,10 +78,13 @@ namespace CrazyRisk.Managers
             int[] resultadosDefensor = manejadorCombate.LanzarDadosDefensor(dadosDefensor);
 
             if (panelCombate != null)
+            {
                 panelCombate.SetActive(true);
+                panelCombate.transform.SetAsLastSibling();
+            }
 
             if (textoAtaque != null)
-                textoAtaque.text = $"{nombreAtacante} ataca a {nombreDefensor}";
+                textoAtaque.text = nombreAtacante + " ataca a " + nombreDefensor;
 
             MostrarDadosAtacante(resultadosAtacante);
             MostrarDadosDefensor(resultadosDefensor);
@@ -123,11 +155,14 @@ namespace CrazyRisk.Managers
 
             foreach (string linea in lineas)
             {
-                if (linea.Contains("pierde"))
+                if (linea.Contains("pierde") || linea.Contains("BAJAS"))
                 {
                     resultado += linea.Trim() + "\n";
                 }
             }
+
+            if (string.IsNullOrEmpty(resultado))
+                return resultadoCompleto;
 
             return resultado.Trim();
         }
@@ -136,12 +171,6 @@ namespace CrazyRisk.Managers
         {
             if (panelCombate != null)
                 panelCombate.SetActive(false);
-        }
-
-        [ContextMenu("Probar Combate")]
-        public void ProbarCombate()
-        {
-            MostrarCombate("Alaska", "Siberia", 5, 3);
         }
     }
 }

@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using TMPro;
 using CrazyRisk.Modelos;
 using CrazyRisk.Estructuras;
@@ -14,15 +14,12 @@ namespace CrazyRisk.LogicaJuego
         [SerializeField] private GameObject panelAtaque;
         [SerializeField] private GameObject panelPlaneacion;
 
-        // Estado del juego
         private Lista<Jugador> jugadores;
         private Lista<Continente> continentes;
         private int jugadorActualIndex = 0;
         private FaseTurno faseActual = FaseTurno.Refuerzos;
         private int refuerzosDisponibles = 0;
-        private int jugadoresQueHanColocadoRefuerzos = 0;
-        private bool todosColocaronRefuerzos = false;
-        // Referencias
+
         private ManejadorRefuerzos manejadorRefuerzos;
         private ManejadorCombate manejadorCombate;
         private GameManager gameManager;
@@ -48,14 +45,12 @@ namespace CrazyRisk.LogicaJuego
             jugadores = listaJugadores;
             continentes = listaContinentes;
 
-            // Crear instancias aquí para asegurar que existan
             if (manejadorRefuerzos == null)
                 manejadorRefuerzos = new ManejadorRefuerzos();
 
             if (manejadorCombate == null)
                 manejadorCombate = new ManejadorCombate();
 
-            // Asegurarse que existe el game manager
             if (gameManager == null)
                 gameManager = FindObjectOfType<GameManager>();
 
@@ -72,51 +67,26 @@ namespace CrazyRisk.LogicaJuego
 
             Jugador jugadorActual = GetJugadorActual();
 
-            // Si todos ya colocaron refuerzos, ir a Ataque
-            if (todosColocaronRefuerzos)
-            {
-                faseActual = FaseTurno.Ataque;
-                todosColocaronRefuerzos = false;
-                jugadoresQueHanColocadoRefuerzos = 0;
-            }
-            else
-            {
-                faseActual = FaseTurno.Refuerzos;
-            }
+            // SIEMPRE empezar en Refuerzos para ESTE jugador
+            faseActual = FaseTurno.Refuerzos;
 
-            // Calcular refuerzos solo si es fase de refuerzos
-            if (faseActual == FaseTurno.Refuerzos)
-            {
-                // Usar siempre ManejadorRefuerzos
-                refuerzosDisponibles = manejadorRefuerzos.CalcularRefuerzos(
-                    jugadorActual.getCantidadTerritorios(),
-                    jugadorActual.getTerritoriosControlados(),
-                    continentes
-                );
+            // Calcular refuerzos
+            refuerzosDisponibles = manejadorRefuerzos.CalcularRefuerzos(
+                jugadorActual.getCantidadTerritorios(),
+                jugadorActual.getTerritoriosControlados(),
+                continentes
+            );
 
-                Debug.Log($"Refuerzos calculados para {jugadorActual.getNombre()}: {refuerzosDisponibles}");
-            }
+            Debug.Log($"Refuerzos calculados para {jugadorActual.getNombre()}: {refuerzosDisponibles}");
 
             ActualizarUI();
             MostrarPanelFase();
 
-            if (jugadorActual.getEsNeutral() && faseActual == FaseTurno.Refuerzos)
+            if (jugadorActual.getEsNeutral())
             {
-                Debug.Log(">>> Neutral colocando refuerzos automáticamente");
+                Debug.Log(">>> Neutral colocando refuerzos automaticamente");
                 ColocarRefuerzosNeutralAutomatico();
             }
-            else if (jugadorActual.getEsNeutral() && faseActual == FaseTurno.Ataque)
-            {
-                Debug.Log(">>> Neutral salta ataque");
-                SiguienteFase();
-            }
-            else if (jugadorActual.getEsNeutral() && faseActual == FaseTurno.Planeacion)
-            {
-                Debug.Log(">>> Neutral salta planeación");
-                SiguienteFase();
-            }
-        
-
         }
 
         public void SiguienteFase()
@@ -126,39 +96,39 @@ namespace CrazyRisk.LogicaJuego
             switch (faseActual)
             {
                 case FaseTurno.Refuerzos:
-
                     if (refuerzosDisponibles > 0)
                     {
                         Debug.Log("Debes colocar todos los refuerzos");
                         return;
                     }
 
-                    // Contar este jugador
-                    jugadoresQueHanColocadoRefuerzos++;
+                    // Pasar a ATAQUE del MISMO jugador
+                    faseActual = FaseTurno.Ataque;
+                    ActualizarUI();
+                    MostrarPanelFase();
 
-                    // Verificar si todos terminaron (2 jugadores, neutral no cuenta)
-                    if (jugadoresQueHanColocadoRefuerzos >= 3)
+                    if (jugadorActual.getEsNeutral())
                     {
-                        todosColocaronRefuerzos = true;
-                        Debug.Log("Todos colocaron refuerzos, siguiente turno será Ataque");
+                        Debug.Log(">>> Neutral salta ataque");
+                        SiguienteFase();
                     }
-
-                    SiguienteJugador();
                     return;
 
                 case FaseTurno.Ataque:
+                    // Pasar a PLANEACION del MISMO jugador
                     faseActual = FaseTurno.Planeacion;
                     ActualizarUI();
                     MostrarPanelFase();
 
-                    // Si es neutral, saltar planeación también
                     if (jugadorActual.getEsNeutral())
                     {
+                        Debug.Log(">>> Neutral salta planeacion");
                         SiguienteFase();
                     }
                     return;
 
                 case FaseTurno.Planeacion:
+                    // AHORA SI pasar al SIGUIENTE jugador
                     SiguienteJugador();
                     return;
             }
@@ -170,6 +140,7 @@ namespace CrazyRisk.LogicaJuego
         private void SiguienteJugador()
         {
             jugadorActualIndex = (jugadorActualIndex + 1) % jugadores.getSize();
+            ManagerSonidos.Instance?.ReproducirCambioTurno();
             IniciarTurno();
         }
 
@@ -188,7 +159,6 @@ namespace CrazyRisk.LogicaJuego
                 }
             }
 
-            // Actualizar panel de datos del GameManager
             if (gameManager != null)
             {
                 gameManager.ActualizarPanelDatos();
@@ -202,7 +172,6 @@ namespace CrazyRisk.LogicaJuego
             if (panelPlaneacion != null) panelPlaneacion.SetActive(faseActual == FaseTurno.Planeacion);
         }
 
-        // Métodos públicos para usar desde otros scripts
         public Jugador GetJugadorActual() => jugadores[jugadorActualIndex];
         public FaseTurno GetFaseActual() => faseActual;
         public int GetRefuerzosDisponibles() => refuerzosDisponibles;
@@ -221,14 +190,11 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
-        ///<summary>
-        ///Metodo para lograr que el neutral coloque los refuerzos
-        ///</summary>
         private async void ColocarRefuerzosNeutralAutomatico()
         {
             Jugador neutral = GetJugadorActual();
 
-            Debug.Log($"Neutral colocando {refuerzosDisponibles} refuerzos automáticamente");
+            Debug.Log($"Neutral colocando {refuerzosDisponibles} refuerzos automaticamente");
 
             while (refuerzosDisponibles > 0)
             {
@@ -246,14 +212,12 @@ namespace CrazyRisk.LogicaJuego
                 territorioElegido.AgregarTropas(1);
                 UsarRefuerzo();
 
-                // Actualizar visualización usando el método existente
                 if (gameManager != null)
                 {
                     gameManager.ActualizarTerritorioEspecifico(territorioElegido.Nombre);
                 }
 
-                Debug.Log($"Neutral colocó 1 tropa en {territorioElegido.Nombre}");
-
+                Debug.Log($"Neutral coloco 1 tropa en {territorioElegido.Nombre}");
             }
         }
 

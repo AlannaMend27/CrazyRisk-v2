@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using CrazyRisk.Estructuras;
 using CrazyRisk.Modelos;
 
@@ -36,11 +36,20 @@ namespace CrazyRisk.LogicaJuego
 
         public bool SeleccionarDestino(Territorio territorio, int jugadorId)
         {
+            Debug.Log("=== SELECCIONAR DESTINO ===");
+            Debug.Log($"Territorio origen: {territorioOrigen?.Nombre ?? "NULL"}");
+            Debug.Log($"Territorio destino: {territorio.Nombre}");
+            Debug.Log($"Origen es null: {territorioOrigen == null}");
+
             if (territorioOrigen == null)
             {
                 Debug.Log("Primero debes seleccionar un territorio de origen");
                 return false;
             }
+
+            Debug.Log($"Propietario destino: {territorio.PropietarioId}");
+            Debug.Log($"Jugador ID: {jugadorId}");
+            Debug.Log($"Son del mismo jugador: {territorio.PropietarioId == jugadorId}");
 
             if (territorio.PropietarioId != jugadorId)
             {
@@ -48,20 +57,26 @@ namespace CrazyRisk.LogicaJuego
                 return false;
             }
 
+            Debug.Log($"Mismo territorio: {territorio.Id == territorioOrigen.Id}");
+
             if (territorio.Id == territorioOrigen.Id)
             {
                 Debug.Log("El origen y destino deben ser diferentes");
                 return false;
             }
 
-            if (!ExisteRuta(territorioOrigen, territorio, jugadorId))
+            Debug.Log($"Verificando ruta entre {territorioOrigen.Nombre} y {territorio.Nombre}...");
+            bool hayRuta = ExisteRuta(territorioOrigen, territorio, jugadorId);
+            Debug.Log($"Existe ruta: {hayRuta}");
+
+            if (!hayRuta)
             {
                 Debug.Log("No existe una ruta de territorios propios entre origen y destino");
                 return false;
             }
 
             territorioDestino = territorio;
-            Debug.Log($"Territorio destino seleccionado: {territorio.Nombre}");
+            Debug.Log($"✓ Territorio destino seleccionado: {territorio.Nombre}");
             return true;
         }
 

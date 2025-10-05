@@ -35,6 +35,7 @@ namespace CrazyRisk.Managers
         private Lista<Territorio> territoriosLogica;
         private Jugador jugador1, jugador2, jugadorNeutral;
         private DetectorVictoria detectorVictoria;
+        private ManejadorAtaques manejadorAtaques = new ManejadorAtaques();
 
         //Estado de preparacion
         private bool enFasePreparacion = false;
@@ -54,11 +55,14 @@ namespace CrazyRisk.Managers
                 PanelDatos.SetActive(false);
 
             detectorVictoria = new DetectorVictoria();
+
             VerificarJuegoEnRed();
             InicializarJuego();
 
             InvokeRepeating("VerificarEstadoPartida", 2f, 2f);
         }
+
+        public ManejadorAtaques GetManejadorAtaques() => manejadorAtaques;
 
         private void VerificarJuegoEnRed()
         {
@@ -388,15 +392,17 @@ namespace CrazyRisk.Managers
         {
             if (panelVictoria != null)
             {
+                ManagerSonidos.Instance?.ReproducirVictoria();
+
                 panelVictoria.SetActive(true);
 
                 if (textoGanador != null)
-                    textoGanador.text = $"¡{ganador.getNombre()} ha conquistado el mundo!";
+                    textoGanador.text = $"{ganador.getNombre()} ha conquistado el mundo!";
 
                 Time.timeScale = 0;
             }
 
-            Debug.Log($"¡VICTORIA! {ganador.getNombre()} ha ganado la partida");
+            Debug.Log($"VICTORIA! {ganador.getNombre()} ha ganado la partida");
         }
 
         private void BuscarTerritoriosEnEscena()

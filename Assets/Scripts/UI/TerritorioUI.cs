@@ -21,11 +21,17 @@ namespace CrazyRisk.Managers
         private Territorio territorioLogico;
         private ManejadorTurnos manejadorTurnos;
         private GameManager gameManager;
+        private ManejadorAtaques manejadorAtaques;
+        private VisualizadorDados visualizadorDados;
 
         // Estado visual
         private Color colorOriginal;
         private Color colorHover;
         private bool estaSeleccionado = false;
+
+        // Variables estáticas para mantener selección entre instancias
+        private static TerritorioUI territorioAtacanteSeleccionado = null;
+        private static TerritorioUI territorioDefensorSeleccionado = null;
 
         void Start()
         {
@@ -81,6 +87,21 @@ namespace CrazyRisk.Managers
             }
         }
 
+        public static void LimpiarSeleccionesEstaticas()
+        {
+            if (territorioAtacanteSeleccionado != null)
+            {
+                territorioAtacanteSeleccionado.DeseleccionarTerritorio();
+                territorioAtacanteSeleccionado = null;
+            }
+
+            if (territorioDefensorSeleccionado != null)
+            {
+                territorioDefensorSeleccionado.DeseleccionarTerritorio();
+                territorioDefensorSeleccionado = null;
+            }
+        }
+       
         private void BuscarReferencias()
         {
             gameManager = FindObjectOfType<GameManager>();
@@ -116,8 +137,29 @@ namespace CrazyRisk.Managers
 
         void OnMouseEnter()
         {
-            if (spriteRenderer != null && !estaSeleccionado)
-                spriteRenderer.color = colorHover;
+            if (spriteRenderer == null || estaSeleccionado) return;
+
+            // Solo en fase de ataque
+            if (manejadorTurnos != null && manejadorTurnos.GetFaseActual() == ManejadorTurnos.FaseTurno.Ataque)
+            {
+                // Si hay atacante seleccionado
+                if (territorioAtacanteSeleccionado != null)
+                {
+                    Territorio atacante = territorioAtacanteSeleccionado.GetTerritorioLogico();
+                    Jugador jugadorActual = manejadorTurnos.GetJugadorActual();
+
+                    // Si este territorio NO es mío Y es adyacente al atacante
+                    if (territorioLogico.PropietarioId != jugadorActual.getId() &&
+                        atacante.EsAdyacenteA(territorioLogico.Id))
+                    {
+                        spriteRenderer.color = Color.red;
+                        return;
+                    }
+                }
+            }
+
+            // Hover normal para cualquier otro caso
+            spriteRenderer.color = colorHover;
         }
 
         void OnMouseExit()
@@ -136,21 +178,18 @@ namespace CrazyRisk.Managers
                 return;
             }
 
-            // Si estamos en fase de preparación
             if (gameManager.EstaEnFasePreparacion())
             {
                 ManejarFasePreparacion();
                 return;
             }
 
-            // verificar que existe
             if (manejadorTurnos == null)
             {
                 Debug.Log("ManejadorTurnos era null, buscando...");
                 manejadorTurnos = FindObjectOfType<ManejadorTurnos>();
             }
 
-            // verificar que no sea null despues de buscar
             if (manejadorTurnos == null)
             {
                 Debug.LogError("ManejadorTurnos no encontrado en la escena");
@@ -204,23 +243,18 @@ namespace CrazyRisk.Managers
 
             if (exito)
             {
+                ManagerSonidos.Instance?.ReproducirColocarTropas(); 
                 ActualizarInterfaz();
                 Debug.Log($"Tropa colocada exitosamente en {territorioLogico.Nombre}");
+            }
+            else
+            {
+                ManagerSonidos.Instance?.ReproducirError();
             }
         }
 
         private void ManejarRefuerzos(Jugador jugadorActual)
         {
-            // Debug detallado para ver qué está pasando
-            Debug.Log($"=== DEBUG REFUERZOS ===");
-            Debug.Log($"Territorio: {territorioLogico.Nombre}");
-            Debug.Log($"PropietarioId del territorio: {territorioLogico.PropietarioId}");
-            Debug.Log($"Id del jugador actual: {jugadorActual.getId()}");
-            Debug.Log($"Puede colocar refuerzos: {manejadorTurnos.PuedeColocarRefuerzos()}");
-            Debug.Log($"Son iguales: {territorioLogico.PropietarioId == jugadorActual.getId()}");
-            Debug.Log($"======================");
-
-            // Verificación más robusta
             if (manejadorTurnos == null)
             {
                 Debug.LogError("ManejadorTurnos es null");
@@ -239,49 +273,173 @@ namespace CrazyRisk.Managers
                 return;
             }
 
-            // Comparación segura usando string para evitar problemas de tipos
             bool esPropietario = territorioLogico.PropietarioId.ToString() == jugadorActual.getId().ToString();
 
             if (esPropietario)
             {
                 territorioLogico.AgregarTropas(1);
                 manejadorTurnos.UsarRefuerzo();
+                ManagerSonidos.Instance?.ReproducirColocarTropas();
                 ActualizarInterfaz();
                 Debug.Log($"✓ {jugadorActual.getNombre()} colocó 1 refuerzo en {territorioLogico.Nombre}");
             }
             else
             {
                 Debug.LogWarning($"✗ {jugadorActual.getNombre()} intentó colocar refuerzo en territorio ajeno");
-                Debug.LogWarning($"   Propietario: {territorioLogico.PropietarioId} | Jugador: {jugadorActual.getId()}");
             }
         }
 
         private void ManejarAtaque(Jugador jugadorActual)
         {
+            // Buscar referencias
+            if (manejadorAtaques == null)
+                manejadorAtaques = gameManager.GetManejadorAtaques();
+
+            if (visualizadorDados == null)
+                visualizadorDados = FindObjectOfType<VisualizadorDados>();
+
+            // CASO 1: Si es mi territorio con 2+ tropas -> seleccionar como atacante
             if (territorioLogico.PropietarioId == jugadorActual.getId())
             {
                 if (territorioLogico.PuedeAtacar())
                 {
-                    SeleccionarTerritorio();
-                    Debug.Log($"Territorio atacante seleccionado: {territorioLogico.Nombre}");
+                    // Deseleccionar anteriores
+                    if (territorioAtacanteSeleccionado != null)
+                        territorioAtacanteSeleccionado.DeseleccionarTerritorio();
+
+                    if (territorioDefensorSeleccionado != null)
+                    {
+                        territorioDefensorSeleccionado.DeseleccionarTerritorio();
+                        territorioDefensorSeleccionado = null;
+                    }
+
+                    // Seleccionar este como atacante
+                    if (manejadorAtaques.SeleccionarAtacante(territorioLogico, jugadorActual.getId()))
+                    {
+                        territorioAtacanteSeleccionado = this;
+                        SeleccionarTerritorio(); // Amarillo
+                        Debug.Log($"Atacante seleccionado: {territorioLogico.Nombre}");
+                    }
                 }
                 else
                 {
                     Debug.Log("Este territorio necesita al menos 2 tropas para atacar");
                 }
             }
+            // CASO 2: Si es enemigo y hay atacante seleccionado -> seleccionar como defensor
+            else if (territorioAtacanteSeleccionado != null)
+            {
+                if (manejadorAtaques.SeleccionarDefensor(territorioLogico, jugadorActual.getId()))
+                {
+                    // Deseleccionar defensor anterior si existía
+                    if (territorioDefensorSeleccionado != null)
+                        territorioDefensorSeleccionado.DeseleccionarTerritorio();
+
+                    // Seleccionar este como defensor
+                    territorioDefensorSeleccionado = this;
+                    SeleccionarTerritorioRojo();
+                    Debug.Log($"Defensor seleccionado: {territorioLogico.Nombre}. Presiona ATACAR para ejecutar.");
+                }
+            }
             else
             {
-                Debug.Log($"Territorio enemigo: {territorioLogico.Nombre} - Objetivo de ataque");
+                Debug.Log("Primero selecciona un territorio propio para atacar");
             }
+        }
+
+        // Método para seleccionar en rojo (defensor)
+        private void SeleccionarTerritorioRojo()
+        {
+            estaSeleccionado = true;
+
+            if (bordeSeleccion != null)
+                bordeSeleccion.SetActive(true);
+
+            if (spriteRenderer != null)
+                spriteRenderer.color = Color.red;
+        }
+
+        // Método estático llamado desde el botón UI
+        public static void EjecutarAtaqueDesdeBoton()
+        {
+            if (territorioAtacanteSeleccionado == null || territorioDefensorSeleccionado == null)
+            {
+                Debug.LogWarning("Debes seleccionar atacante y defensor");
+                return;
+            }
+
+            ControladorCombate controlador = FindObjectOfType<ControladorCombate>();
+
+            if (controlador == null)
+            {
+                Debug.LogError("ControladorCombate no encontrado en la escena");
+                return;
+            }
+
+            GameManager gm = FindObjectOfType<GameManager>();
+            ManejadorAtaques manejador = gm?.GetManejadorAtaques();
+
+            if (manejador == null)
+            {
+                Debug.LogError("ManejadorAtaques no encontrado");
+                return;
+            }
+
+            controlador.IniciarPreguntaAtacar(
+                territorioAtacanteSeleccionado,
+                territorioDefensorSeleccionado,
+                manejador
+            );
+        }
+
+        private Color ObtenerColorJugador(int jugadorId)
+        {
+            if (jugadorId == gameManager.GetJugador1().getId())
+                return Color.green;
+            else if (jugadorId == gameManager.GetJugador2().getId())
+                return new Color(0.5f, 0f, 0.8f);
+            return Color.gray;
         }
 
         private void ManejarPlaneacion(Jugador jugadorActual)
         {
-            if (territorioLogico.PropietarioId == jugadorActual.getId())
+            Debug.Log($"=== PLANEACION: Click en {territorioLogico.Nombre} ===");
+            Debug.Log($"Fase actual confirmada: {manejadorTurnos.GetFaseActual()}");
+
+            if (territorioLogico.PropietarioId != jugadorActual.getId())
             {
-                SeleccionarTerritorio();
-                Debug.Log($"Territorio seleccionado para planeación: {territorioLogico.Nombre}");
+                Debug.LogWarning("Solo puedes seleccionar tus propios territorios");
+                return;
+            }
+
+            ControladorPlaneacion controlador = FindObjectOfType<ControladorPlaneacion>();
+            if (controlador == null)
+            {
+                Debug.LogError("ControladorPlaneacion no encontrado en la escena");
+                return;
+            }
+
+            ManejadorPlaneacion manejador = controlador.GetManejador();
+            if (manejador == null)
+            {
+                Debug.LogError("ManejadorPlaneacion es null en ControladorPlaneacion");
+                return;
+            }
+
+            Debug.Log($"Origen actual: {(manejador.GetTerritorioOrigen() != null ? manejador.GetTerritorioOrigen().Nombre : "NULL")}");
+
+            // Si no hay origen seleccionado, este será el origen
+            if (manejador.GetTerritorioOrigen() == null)
+            {
+                Debug.Log("Estableciendo como ORIGEN...");
+                controlador.SeleccionarOrigen(this);
+                SeleccionarTerritorio(); // Amarillo
+            }
+            // Si ya hay origen, este será el destino
+            else
+            {
+                Debug.Log("Estableciendo como DESTINO...");
+                controlador.SeleccionarDestino(this);
             }
         }
 
