@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using CrazyRisk.Estructuras;
 using CrazyRisk.Modelos;
 using CrazyRisk.Managers;
@@ -122,8 +122,6 @@ namespace CrazyRisk.LogicaJuego
             CalcularBajas(resultadosAtacante, resultadosDefensor, resultado);
 
             // Aplicar bajas
-            ManagerSonidos.Instance?.ReproducirAtaque();
-
             territorioAtacante.CantidadTropas -= resultado.tropasPerdidasAtacante;
             territorioDefensor.CantidadTropas -= resultado.tropasPerdidasDefensor;
 
@@ -138,8 +136,6 @@ namespace CrazyRisk.LogicaJuego
                 // Validar que haya suficientes
                 if (territorioAtacante.CantidadTropas > tropasAMover)
                 {
-                    int propietarioAnterior = territorioDefensor.PropietarioId;
-
                     territorioAtacante.CantidadTropas -= tropasAMover;
                     territorioDefensor.CantidadTropas = tropasAMover;
                     territorioDefensor.PropietarioId = territorioAtacante.PropietarioId;
@@ -156,19 +152,33 @@ namespace CrazyRisk.LogicaJuego
                             jugador = gameManager.GetJugador1();
                         else if (gameManager.GetJugador2().getId() == territorioAtacante.PropietarioId)
                             jugador = gameManager.GetJugador2();
+                        else if (gameManager.GetJugador3() != null &&
+                                 gameManager.GetJugador3().getId() == territorioAtacante.PropietarioId)
+                            jugador = gameManager.GetJugador3();
 
                         if (jugador != null && !jugador.getEsNeutral())
                         {
+                            // Verificar límite de tarjetas ANTES de dar la nueva
+                            if (jugador.getTarjetas().getSize() >= 5)
+                            {
+                                Debug.LogWarning($"{jugador.getNombre()} tiene 5 tarjetas. Debe intercambiar antes de recibir otra.");
+                                IntercambiarAutomaticamente(jugador);
+                            }
+
+                            // Dar la tarjeta DESPUÉS del intercambio
                             Tarjeta nuevaTarjeta = Tarjeta.CrearTarjetaAleatoria(territorioDefensor.Nombre);
                             jugador.getTarjetas().Agregar(nuevaTarjeta);
 
                             Debug.Log($"{jugador.getNombre()} obtuvo tarjeta: {nuevaTarjeta}!");
-
-                            if (jugador.getTarjetas().getSize() >= 6)
-                            {
-                                Debug.LogWarning($"{jugador.getNombre()} tiene 6 tarjetas. Debe intercambiar!");
-                            }
                         }
+                    }
+
+                    // NUEVO: Notificar al ManejadorTurnos sobre la conquista exitosa
+                    ManejadorTurnos manejadorTurnos = UnityEngine.Object.FindObjectOfType<ManejadorTurnos>();
+                    if (manejadorTurnos != null)
+                    {
+                        manejadorTurnos.RegistrarAtaqueRealizado();
+                        // El jugador puede seguir atacando, no pasamos automáticamente a planeación
                     }
                 }
                 else
@@ -177,8 +187,21 @@ namespace CrazyRisk.LogicaJuego
                     resultado.conquistado = false;
                 }
             }
+            else
+            {
+                // NUEVO: Registrar ataque incluso si no hubo conquista
+                ManejadorTurnos manejadorTurnos = UnityEngine.Object.FindObjectOfType<ManejadorTurnos>();
+                if (manejadorTurnos != null)
+                {
+                    manejadorTurnos.RegistrarAtaqueRealizado();
+                }
+            }
 
             Debug.Log($"Ataque ejecutado: {resultado.ToString()}");
+
+            // NUEVO: Limpiar selecciones después del ataque para permitir nuevos ataques
+            LimpiarSeleccion();
+
             return resultado;
         }
 
@@ -199,6 +222,41 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
+        private void IntercambiarAutomaticamente(Jugador jugador)
+        {
+            ManejadorTarjetas manejadorTarjetas = UnityEngine.Object.FindObjectOfType<ManejadorTarjetas>();
+
+            if (manejadorTarjetas == null)
+            {
+                GameObject obj = new GameObject("ManejadorTarjetas");
+                manejadorTarjetas = obj.AddComponent<ManejadorTarjetas>();
+            }
+
+            int[] trio = manejadorTarjetas.EncontrarTrioValido(jugador);
+
+            if (trio != null)
+            {
+                // Obtener refuerzos ANTES de intercambiar
+                ManejadorRefuerzos manejadorRefuerzos = new ManejadorRefuerzos();
+                int refuerzosObtenidos = manejadorRefuerzos.Fibonacci();
+
+                // Realizar intercambio
+                manejadorTarjetas.IntentarIntercambio(jugador, trio[0], trio[1], trio[2]);
+
+                // Agregar refuerzos al turno actual si está en fase de refuerzos
+                ManejadorTurnos manejadorTurnos = UnityEngine.Object.FindObjectOfType<ManejadorTurnos>();
+                if (manejadorTurnos != null)
+                {
+                    manejadorTurnos.AgregarRefuerzosDinamicos(refuerzosObtenidos);
+                    Debug.Log($"Intercambio automático: {jugador.getNombre()} recibió {refuerzosObtenidos} refuerzos");
+                }
+            }
+            else
+            {
+                Debug.LogError($"{jugador.getNombre()} tiene 6 tarjetas pero no hay trío válido!");
+            }
+        }
+
         public void LimpiarSeleccion()
         {
             territorioAtacante = null;
@@ -207,30 +265,49 @@ namespace CrazyRisk.LogicaJuego
 
         public Territorio GetTerritorioAtacante() => territorioAtacante;
         public Territorio GetTerritorioDefensor() => territorioDefensor;
-    }
 
-    public class ResultadoAtaque
-    {
-        public string territorioAtacante;
-        public string territorioDefensor;
-        public int[] dadosAtacante;
-        public int[] dadosDefensor;
-        public int tropasPerdidasAtacante;
-        public int tropasPerdidasDefensor;
-        public bool conquistado;
-
-        public override string ToString()
+        // NUEVO: Método para verificar si hay selección válida
+        public bool TieneSeleccionValida()
         {
-            string dados1 = string.Join(", ", dadosAtacante);
-            string dados2 = string.Join(", ", dadosDefensor);
+            return territorioAtacante != null && territorioDefensor != null;
+        }
 
-            string msg = $"{territorioAtacante} [{dados1}] vs {territorioDefensor} [{dados2}]\n";
-            msg += $"Bajas - Atacante: {tropasPerdidasAtacante}, Defensor: {tropasPerdidasDefensor}";
+        // NUEVO: Método para obtener información de la selección actual
+        public string GetInfoSeleccion()
+        {
+            if (territorioAtacante == null && territorioDefensor == null)
+                return "Sin selección";
+            else if (territorioAtacante != null && territorioDefensor == null)
+                return $"Atacante: {territorioAtacante.Nombre} - Selecciona defensor";
+            else if (territorioAtacante != null && territorioDefensor != null)
+                return $"Atacante: {territorioAtacante.Nombre} vs Defensor: {territorioDefensor.Nombre}";
+            else
+                return "Estado de selección inválido";
+        }
 
-            if (conquistado)
-                msg += "\nTERRITORIO CONQUISTADO!";
+        public class ResultadoAtaque
+        {
+            public string territorioAtacante;
+            public string territorioDefensor;
+            public int[] dadosAtacante;
+            public int[] dadosDefensor;
+            public int tropasPerdidasAtacante;
+            public int tropasPerdidasDefensor;
+            public bool conquistado;
 
-            return msg;
+            public override string ToString()
+            {
+                string dados1 = string.Join(", ", dadosAtacante);
+                string dados2 = string.Join(", ", dadosDefensor);
+
+                string msg = $"{territorioAtacante} [{dados1}] vs {territorioDefensor} [{dados2}]\n";
+                msg += $"Bajas - Atacante: {tropasPerdidasAtacante}, Defensor: {tropasPerdidasDefensor}";
+
+                if (conquistado)
+                    msg += "\nTERRITORIO CONQUISTADO!";
+
+                return msg;
+            }
         }
     }
 }

@@ -11206,7 +11206,6 @@ GameObject:
   - component: {fileID: 749664833}
   - component: {fileID: 749664835}
   - component: {fileID: 749664834}
-  - component: {fileID: 749664836}
   m_Layer: 5
   m_Name: PreguntaDefender
   m_TagString: Untagged
@@ -11274,29 +11273,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 749664832}
   m_CullTransparentMesh: 1
---- !u!223 &749664836
-Canvas:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 749664832}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_RenderMode: 2
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
-  m_PixelPerfect: 0
-  m_ReceivesEvents: 1
-  m_OverrideSorting: 1
-  m_OverridePixelPerfect: 0
-  m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 25
-  m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 100
-  m_TargetDisplay: 0
 --- !u!1 &772567614
 GameObject:
   m_ObjectHideFlags: 0
@@ -14987,7 +14963,6 @@ GameObject:
   - component: {fileID: 1121655050}
   - component: {fileID: 1121655052}
   - component: {fileID: 1121655051}
-  - component: {fileID: 1121655053}
   m_Layer: 5
   m_Name: PreguntaAtacar
   m_TagString: Untagged
@@ -15055,29 +15030,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1121655049}
   m_CullTransparentMesh: 1
---- !u!223 &1121655053
-Canvas:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1121655049}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_RenderMode: 2
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
-  m_PixelPerfect: 0
-  m_ReceivesEvents: 1
-  m_OverrideSorting: 1
-  m_OverridePixelPerfect: 0
-  m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 25
-  m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 100
-  m_TargetDisplay: 0
 --- !u!1 &1133279679
 GameObject:
   m_ObjectHideFlags: 0
@@ -20241,6 +20193,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 1619175752}
+        m_TargetAssemblyTypeName: UIController, Assembly-CSharp
+        m_MethodName: OnContinuar
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 629516218}
         m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
         m_MethodName: ReproducirClick
@@ -24267,9 +24231,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
-        m_MethodName: CerrarJuego
+      - m_Target: {fileID: 629516218}
+        m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
+        m_MethodName: ReproducirClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1619175752}
+        m_TargetAssemblyTypeName: UIController, Assembly-CSharp
+        m_MethodName: OnContinuar
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -24668,7 +24644,6 @@ GameObject:
   - component: {fileID: 1751579250}
   - component: {fileID: 1751579252}
   - component: {fileID: 1751579251}
-  - component: {fileID: 1751579253}
   m_Layer: 5
   m_Name: PanelCombate
   m_TagString: Untagged
@@ -24739,29 +24714,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1751579249}
   m_CullTransparentMesh: 1
---- !u!223 &1751579253
-Canvas:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1751579249}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_RenderMode: 2
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
-  m_PixelPerfect: 0
-  m_ReceivesEvents: 1
-  m_OverrideSorting: 1
-  m_OverridePixelPerfect: 0
-  m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 25
-  m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 100
-  m_TargetDisplay: 0
 --- !u!1 &1763550598
 GameObject:
   m_ObjectHideFlags: 0
@@ -26255,6 +26207,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8352829f6ee67a49836d65a9d5023da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  j1_nombre: {fileID: 1635755282}
+  j2_nombre: {fileID: 244931940}
+  j3_nombre: {fileID: 309678030}
   infoJ1: {fileID: 1222144306}
   infoJ2: {fileID: 208555924}
   infoJ3: {fileID: 878538236}
@@ -28923,7 +28878,6 @@ GameObject:
   - component: {fileID: 1972524609}
   - component: {fileID: 1972524611}
   - component: {fileID: 1972524610}
-  - component: {fileID: 1972524612}
   m_Layer: 5
   m_Name: PanelMovimientoTropas
   m_TagString: Untagged
@@ -28993,29 +28947,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1972524608}
   m_CullTransparentMesh: 1
---- !u!223 &1972524612
-Canvas:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1972524608}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_RenderMode: 2
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
-  m_PixelPerfect: 0
-  m_ReceivesEvents: 1
-  m_OverrideSorting: 1
-  m_OverridePixelPerfect: 0
-  m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 25
-  m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 100
-  m_TargetDisplay: 0
 --- !u!1 &1980854201
 GameObject:
   m_ObjectHideFlags: 0

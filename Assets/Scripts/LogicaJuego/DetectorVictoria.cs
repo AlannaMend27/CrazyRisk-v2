@@ -24,6 +24,10 @@ namespace CrazyRisk.LogicaJuego
             {
                 Jugador jugador = jugadores.Obtener(i);
 
+                // NUEVO: El neutral no puede ganar
+                if (jugador.getEsNeutral())
+                    continue;
+
                 if (VerificarVictoria(jugador))
                 {
                     Debug.Log($"¡{jugador.getNombre()} ha ganado la partida!");
@@ -41,6 +45,10 @@ namespace CrazyRisk.LogicaJuego
             for (int i = 0; i < jugadores.getSize(); i++)
             {
                 Jugador jugador = jugadores.Obtener(i);
+
+                // El neutral no cuenta como jugador activo para condición de victoria
+                if (jugador.getEsNeutral())
+                    continue;
 
                 if (!VerificarDerrota(jugador))
                 {

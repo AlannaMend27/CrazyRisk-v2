@@ -13,6 +13,8 @@ namespace CrazyRisk.LogicaJuego
         private int jugadorActualIndex = 0;
         private int[] idsJugadores;
         private bool fasePreparacionActiva = false;
+        private int idJugadorNeutral = -1; 
+        private Lista<Jugador> jugadoresRef;
 
         //EVENTOS
         // Evento para actualizar constantemente los numeros de los territorios
@@ -31,19 +33,22 @@ namespace CrazyRisk.LogicaJuego
         /// <summary>
         /// Distribuye los 42 territorios aleatoriamente con 1 tropa inicial
         /// </summary>
-        public void DistribuirTerritorios(int jugador1Id, int jugador2Id, int neutralId)
+        public void DistribuirTerritorios(Lista<int> idsJugadores)
         {
+            int numJugadores = idsJugadores.getSize();
             Lista<int> propietarios = new Lista<int>();
 
-            for (int i = 0; i < 14; i++)
+            // Distribuir territorios equitativamente
+            for (int i = 0; i < todosLosTerritorios.getSize(); i++)
             {
-                propietarios.Agregar(jugador1Id);
-                propietarios.Agregar(jugador2Id);
-                propietarios.Agregar(neutralId);
+                int jugadorIndex = i % numJugadores;
+                propietarios.Agregar(idsJugadores[jugadorIndex]);
             }
 
+            // Mezclar para aleatoriedad
             propietarios.Mezclar(random);
 
+            // Asignar territorios
             for (int i = 0; i < todosLosTerritorios.getSize(); i++)
             {
                 todosLosTerritorios[i].PropietarioId = propietarios[i];
@@ -56,18 +61,31 @@ namespace CrazyRisk.LogicaJuego
         /// <summary>
         /// Inicia la fase de preparación manual
         /// </summary>
-        public void IniciarFasePreparacion(int jugador1Id, int jugador2Id, int neutralId)
+        public void IniciarFasePreparacion(Lista<int> idsJugadores, int idNeutral = -1, Lista<Jugador> jugadores = null)
         {
-            idsJugadores = new int[] { jugador1Id, jugador2Id, neutralId };
-            tropasRestantes = new int[] { 26, 26, 26 };
+            this.idJugadorNeutral = idNeutral;
+            this.jugadoresRef = jugadores;
+            int numJugadores = idsJugadores.getSize();
+
+            this.idsJugadores = new int[numJugadores];
+            tropasRestantes = new int[numJugadores];
+
+            // CORRECTO: Basado en si hay neutral o no
+            int tropasIniciales = (idNeutral != -1) ? 26 : 21;
+
+            for (int i = 0; i < numJugadores; i++)
+            {
+                this.idsJugadores[i] = idsJugadores[i];
+                tropasRestantes[i] = tropasIniciales;
+            }
+
             jugadorActualIndex = 0;
             fasePreparacionActiva = true;
 
             UnityEngine.Debug.Log("=== FASE DE PREPARACIÓN INICIADA ===");
-            UnityEngine.Debug.Log($"Cada jugador debe colocar 26 tropas adicionales");
+            UnityEngine.Debug.Log($"{numJugadores} jugadores - {tropasRestantes[0]} tropas por jugador");
             UnityEngine.Debug.Log($"Turno de {GetNombreJugadorActual()}");
 
-            //  Si el primer turno es del neutral, colocarlo automáticamente
             if (EsNeutral(GetJugadorActual()))
             {
                 ColocarTropaNeutralConDelay();
@@ -206,7 +224,7 @@ namespace CrazyRisk.LogicaJuego
             fasePreparacionActiva = false;
 
             UnityEngine.Debug.Log("=== FASE DE PREPARACIÓN COMPLETADA (Distribuidor) ===");
-            VerificarDistribucion(idsJugadores[0], idsJugadores[1], idsJugadores[2]);
+            VerificarDistribucion();
 
             UnityEngine.Debug.Log("🎮 Disparando evento OnPreparacionCompletada...");
 
@@ -246,8 +264,10 @@ namespace CrazyRisk.LogicaJuego
 
         public bool EstaEnFasePreparacion() => fasePreparacionActiva;
 
-        public bool EsNeutral(int jugadorId) => jugadorId == idsJugadores[2];
-
+        public bool EsNeutral(int jugadorId)
+        {
+            return jugadorId == idJugadorNeutral && idJugadorNeutral != -1;
+        }
         public bool EsTurnoDelJugador(int jugadorId) => GetJugadorActual() == jugadorId;
 
         /// <summary>
@@ -257,12 +277,22 @@ namespace CrazyRisk.LogicaJuego
         {
             int id = GetJugadorActual();
 
+            // Buscar en la lista de jugadores
+            if (jugadoresRef != null)
+            {
+                for (int i = 0; i < jugadoresRef.getSize(); i++)
+                {
+                    Jugador jugador = jugadoresRef.Obtener(i);
+                    if (jugador.getId() == id)
+                    {
+                        return jugador.getNombre();
+                    }
+                }
+            }
             if (EsNeutral(id))
                 return "Ejército Neutral";
-            else if (id == idsJugadores[0])
-                return "Jugador 1";
-            else
-                return "Jugador 2";
+
+            return $"Jugador {id}";
         }
 
         // ========== MÉTODOS AUXILIARES ==========
@@ -305,19 +335,26 @@ namespace CrazyRisk.LogicaJuego
             return todosLosTerritorios;
         }
 
-        private void VerificarDistribucion(int jugador1Id, int jugador2Id, int neutralId)
+        private void VerificarDistribucion()
         {
-            int tropasJ1 = ContarTropasJugador(jugador1Id);
-            int tropasJ2 = ContarTropasJugador(jugador2Id);
-            int tropasNeutral = ContarTropasJugador(neutralId);
+            if (idsJugadores == null) return;
 
-            if (tropasJ1 != 40 || tropasJ2 != 40 || tropasNeutral != 40)
+            // 2 jugadores + neutral = 40 tropas
+            // 3 jugadores reales = 35 tropas
+            int tropasEsperadas = (idJugadorNeutral != -1) ? 40 : 35;
+
+            for (int i = 0; i < idsJugadores.Length; i++)
             {
-                throw new InvalidOperationException(
-                    $"❌ Error: J1={tropasJ1}, J2={tropasJ2}, Neutral={tropasNeutral}");
+                int tropas = ContarTropasJugador(idsJugadores[i]);
+
+                if (tropas != tropasEsperadas)
+                {
+                    throw new InvalidOperationException(
+                        $"❌ Error: Jugador {idsJugadores[i]} tiene {tropas} tropas, esperadas {tropasEsperadas}");
+                }
             }
 
-            UnityEngine.Debug.Log($"✅ Verificación exitosa: Todos tienen 40 tropas");
+            UnityEngine.Debug.Log($"✅ Verificación exitosa: {idsJugadores.Length} jugadores con {tropasEsperadas} tropas c/u");
         }
     }
 }

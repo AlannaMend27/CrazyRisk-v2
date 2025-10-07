@@ -36,9 +36,6 @@ namespace CrazyRisk.LogicaJuego
 
         public bool SeleccionarDestino(Territorio territorio, int jugadorId)
         {
-            Debug.Log("=== SELECCIONAR DESTINO ===");
-            Debug.Log($"Territorio origen: {territorioOrigen?.Nombre ?? "NULL"}");
-            Debug.Log($"Territorio destino: {territorio.Nombre}");
             Debug.Log($"Origen es null: {territorioOrigen == null}");
 
             if (territorioOrigen == null)
@@ -65,9 +62,7 @@ namespace CrazyRisk.LogicaJuego
                 return false;
             }
 
-            Debug.Log($"Verificando ruta entre {territorioOrigen.Nombre} y {territorio.Nombre}...");
             bool hayRuta = ExisteRuta(territorioOrigen, territorio, jugadorId);
-            Debug.Log($"Existe ruta: {hayRuta}");
 
             if (!hayRuta)
             {

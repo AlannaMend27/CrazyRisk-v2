@@ -20,6 +20,9 @@ namespace CrazyRisk.Red
         public int turnoActual;
         public int cantidadJugadores;
         public string[] nombresJugadores;
+        public string faseActual;
+        public int refuerzosDisponibles;
+        public bool enFasePreparacion;
     }
 
     [Serializable]
@@ -35,5 +38,17 @@ namespace CrazyRisk.Red
             id = i;
             color = c;
         }
+    }
+
+    [Serializable]
+    public class AccionJuego
+    {
+        public string tipo;
+        public string territorioOrigen;
+        public string territorioDestino;
+        public int cantidad;
+        public int jugadorId;
+        public int dadosAtacante;
+        public int dadosDefensor;
     }
 }

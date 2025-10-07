@@ -3,32 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\DistribuidorTerritorios.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\LogicaJuego\\DistribuidorTerritorios.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\UI\\TerritorioUI.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\UI\\TerritorioUI.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\ManejadorTurnos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\LogicaJuego\\ManejadorTurnos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\ManejadorAtaques.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\LogicaJuego\\ManejadorAtaques.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\ControladorCombate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\LogicaJuego\\ControladorCombate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\Managers\\ManagerSonidos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\Managers\\ManagerSonidos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\Managers\\GameManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\Managers\\GameManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\UI\\UIController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\UI\\UIController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -43,92 +23,27 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "DistribuidorTerritorios.cs",
-              "DocumentMoniker": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\DistribuidorTerritorios.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\LogicaJuego\\DistribuidorTerritorios.cs",
-              "ToolTip": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\DistribuidorTerritorios.cs",
-              "RelativeToolTip": "Assets\\Scripts\\LogicaJuego\\DistribuidorTerritorios.cs",
-              "ViewState": "AgIAAGUAAAAAAAAAAAAswHkAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-05T07:07:24.626Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "TerritorioUI.cs",
-              "DocumentMoniker": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\UI\\TerritorioUI.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\TerritorioUI.cs",
-              "ToolTip": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\UI\\TerritorioUI.cs",
-              "RelativeToolTip": "Assets\\Scripts\\UI\\TerritorioUI.cs",
-              "ViewState": "AgIAAOIAAAAAAAAAAAAswPoAAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-05T07:01:01.746Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "GameManager.cs",
-              "DocumentMoniker": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\Managers\\GameManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Managers\\GameManager.cs",
-              "ToolTip": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\Managers\\GameManager.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Managers\\GameManager.cs",
-              "ViewState": "AgIAABECAAAAAAAAAAAAACECAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-05T06:57:48.764Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "ManagerSonidos.cs",
-              "DocumentMoniker": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\Managers\\ManagerSonidos.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Managers\\ManagerSonidos.cs",
-              "ToolTip": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\Managers\\ManagerSonidos.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Managers\\ManagerSonidos.cs",
-              "ViewState": "AgIAAEIAAAAAAAAAAAAAAFkAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-05T06:34:33.194Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "ControladorCombate.cs",
-              "DocumentMoniker": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\ControladorCombate.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\LogicaJuego\\ControladorCombate.cs",
-              "ToolTip": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\ControladorCombate.cs",
-              "RelativeToolTip": "Assets\\Scripts\\LogicaJuego\\ControladorCombate.cs",
-              "ViewState": "AgIAAI0AAAAAAAAAAAAAAKoAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-05T05:53:42.001Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ManejadorAtaques.cs",
-              "DocumentMoniker": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\ManejadorAtaques.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\LogicaJuego\\ManejadorAtaques.cs",
-              "ToolTip": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\ManejadorAtaques.cs",
-              "RelativeToolTip": "Assets\\Scripts\\LogicaJuego\\ManejadorAtaques.cs",
-              "ViewState": "AgIAANIAAAAAAAAAAAAAAOsAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-05T05:53:12.014Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
               "Title": "ManejadorTurnos.cs",
               "DocumentMoniker": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\ManejadorTurnos.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\LogicaJuego\\ManejadorTurnos.cs",
               "ToolTip": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\LogicaJuego\\ManejadorTurnos.cs",
               "RelativeToolTip": "Assets\\Scripts\\LogicaJuego\\ManejadorTurnos.cs",
-              "ViewState": "AgIAANAAAAAAAAAAAAAAAOMAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-05T05:52:22.469Z",
+              "WhenOpened": "2025-10-07T05:03:29.971Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "UIController.cs",
+              "DocumentMoniker": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\UI\\UIController.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\UIController.cs",
+              "ToolTip": "C:\\Users\\50686\\Documents\\CrazyRisk\\CrazyRisk-v2\\Assets\\Scripts\\UI\\UIController.cs",
+              "RelativeToolTip": "Assets\\Scripts\\UI\\UIController.cs",
+              "ViewState": "AgIAAC8AAAAAAAAAAAAYwFIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-07T04:19:29.114Z",
               "EditorCaption": ""
             }
           ]

@@ -18,7 +18,6 @@ namespace CrazyRisk.Red
         private bool conectado = false;
         private string nombreJugador;
 
-        // Eventos
         public System.Action<MensajeRed> OnMensajeRecibido;
         public System.Action OnConectado;
         public System.Action OnDesconectado;
@@ -29,9 +28,6 @@ namespace CrazyRisk.Red
             DontDestroyOnLoad(gameObject);
         }
 
-        /// <summary>
-        /// Conecta al servidor especificado
-        /// </summary>
         public bool ConectarAServidor(string ip, string nombre)
         {
             try
@@ -39,7 +35,6 @@ namespace CrazyRisk.Red
                 nombreJugador = nombre;
                 cliente = new TcpClient();
 
-                // Configurar timeouts
                 cliente.ReceiveTimeout = timeoutConexion;
                 cliente.SendTimeout = timeoutConexion;
 
@@ -47,14 +42,11 @@ namespace CrazyRisk.Red
                 stream = cliente.GetStream();
                 conectado = true;
 
-                // Iniciar hilo de escucha
                 hilo = new Thread(EscucharMensajes);
                 hilo.Start();
 
-                // Enviar mensaje de conexión inicial
                 EnviarMensajeConexion();
 
-                // Notificar conexión exitosa
                 UnityMainThreadDispatcher.Instance().Enqueue(() => {
                     OnConectado?.Invoke();
                 });
@@ -72,9 +64,6 @@ namespace CrazyRisk.Red
             }
         }
 
-        /// <summary>
-        /// Envía mensaje inicial de conexión con datos del jugador
-        /// </summary>
         private void EnviarMensajeConexion()
         {
             DatosJugador datos = new DatosJugador(nombreJugador, 0, "");
@@ -84,11 +73,18 @@ namespace CrazyRisk.Red
                 datos = JsonConvert.SerializeObject(datos)
             };
             EnviarMensaje(mensaje);
+
+            // Esperar un poco y solicitar estado
+            Thread.Sleep(1000);
+
+            MensajeRed solicitud = new MensajeRed
+            {
+                tipo = "SOLICITAR_ESTADO",
+                datos = ""
+            };
+            EnviarMensaje(solicitud);
         }
 
-        /// <summary>
-        /// Escucha mensajes del servidor en hilo separado
-        /// </summary>
         private void EscucharMensajes()
         {
             byte[] buffer = new byte[4096];
@@ -103,14 +99,12 @@ namespace CrazyRisk.Red
                         string json = Encoding.UTF8.GetString(buffer, 0, bytes);
                         MensajeRed mensaje = JsonConvert.DeserializeObject<MensajeRed>(json);
 
-                        // Procesar en hilo principal
                         UnityMainThreadDispatcher.Instance().Enqueue(() => {
                             OnMensajeRecibido?.Invoke(mensaje);
                         });
                     }
                     else
                     {
-                        // El servidor cerró la conexión
                         Debug.Log("El servidor cerró la conexión");
                         break;
                     }
@@ -131,9 +125,6 @@ namespace CrazyRisk.Red
             Desconectar();
         }
 
-        /// <summary>
-        /// Envía un mensaje al servidor
-        /// </summary>
         public bool EnviarMensaje(MensajeRed mensaje)
         {
             if (stream != null && cliente != null && cliente.Connected)
@@ -154,9 +145,6 @@ namespace CrazyRisk.Red
             return false;
         }
 
-        /// <summary>
-        /// Intenta reconectarse al servidor
-        /// </summary>
         public bool Reconectar(string ip)
         {
             Desconectar();
@@ -164,9 +152,6 @@ namespace CrazyRisk.Red
             return ConectarAServidor(ip, nombreJugador);
         }
 
-        /// <summary>
-        /// Desconecta del servidor
-        /// </summary>
         public void Desconectar()
         {
             conectado = false;
@@ -189,7 +174,6 @@ namespace CrazyRisk.Red
             Debug.Log($"Cliente {nombreJugador} desconectado del servidor");
         }
 
-        // Getters públicos
         public bool EstaConectado() => conectado;
         public string GetNombreJugador() => nombreJugador;
 

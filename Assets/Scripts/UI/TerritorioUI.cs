@@ -135,6 +135,21 @@ namespace CrazyRisk.Managers
             }
         }
 
+        public void OnContinuar()
+        {
+            if (manejadorTurnos == null)
+                manejadorTurnos = FindObjectOfType<ManejadorTurnos>();
+
+            if (manejadorTurnos != null)
+            {
+                manejadorTurnos.SiguienteFase();
+            }
+            else
+            {
+                Debug.LogError("No se encontró ManejadorTurnos");
+            }
+        }
+
         void OnMouseEnter()
         {
             if (spriteRenderer == null || estaSeleccionado) return;
@@ -175,6 +190,14 @@ namespace CrazyRisk.Managers
             if (gameManager == null)
             {
                 Debug.LogError("GameManager no asignado");
+                return;
+            }
+
+            // NUEVO: Validar turno en modo red
+            if (gameManager.EsJuegoEnRed() && !gameManager.EsMiTurno())
+            {
+                ManagerSonidos.Instance?.ReproducirError();
+                Debug.LogWarning("No es tu turno. Espera tu oportunidad.");
                 return;
             }
 
@@ -229,6 +252,16 @@ namespace CrazyRisk.Managers
             }
         }
 
+        void OnDestroy()
+        {
+            // Limpiar referencias estáticas cuando se destruye
+            if (territorioAtacanteSeleccionado == this)
+                territorioAtacanteSeleccionado = null;
+
+            if (territorioDefensorSeleccionado == this)
+                territorioDefensorSeleccionado = null;
+        }
+
         private void ManejarFasePreparacion()
         {
             if (territorioLogico == null)
@@ -273,7 +306,7 @@ namespace CrazyRisk.Managers
                 return;
             }
 
-            bool esPropietario = territorioLogico.PropietarioId.ToString() == jugadorActual.getId().ToString();
+            bool esPropietario = territorioLogico.PropietarioId == jugadorActual.getId();
 
             if (esPropietario)
             {
@@ -286,6 +319,7 @@ namespace CrazyRisk.Managers
             else
             {
                 Debug.LogWarning($"✗ {jugadorActual.getNombre()} intentó colocar refuerzo en territorio ajeno");
+                ManagerSonidos.Instance?.ReproducirError();
             }
         }
 
@@ -368,6 +402,16 @@ namespace CrazyRisk.Managers
                 return;
             }
 
+            GameManager gm = FindObjectOfType<GameManager>();
+
+            // NUEVO: Validar en modo red
+            if (gm.EsJuegoEnRed() && !gm.EsMiTurno())
+            {
+                Debug.LogWarning("No es tu turno para atacar");
+                ManagerSonidos.Instance?.ReproducirError();
+                return;
+            }
+
             ControladorCombate controlador = FindObjectOfType<ControladorCombate>();
 
             if (controlador == null)
@@ -376,7 +420,6 @@ namespace CrazyRisk.Managers
                 return;
             }
 
-            GameManager gm = FindObjectOfType<GameManager>();
             ManejadorAtaques manejador = gm?.GetManejadorAtaques();
 
             if (manejador == null)

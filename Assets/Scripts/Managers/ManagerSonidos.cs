@@ -7,7 +7,6 @@ namespace CrazyRisk.Managers
         public static ManagerSonidos Instance;
 
         [Header("Efectos de Sonido")]
-        [SerializeField] private AudioClip ataque;
         [SerializeField] private AudioClip conquista;
         [SerializeField] private AudioClip colocarTropa;
         [SerializeField] private AudioClip conectadoOTurno;
@@ -26,6 +25,9 @@ namespace CrazyRisk.Managers
             if (Instance == null)
             {
                 Instance = this;
+
+                // Asegurarse de que el GameObject sea raíz antes de usar DontDestroyOnLoad
+                transform.SetParent(null);
                 DontDestroyOnLoad(gameObject);
             }
             else
@@ -37,12 +39,6 @@ namespace CrazyRisk.Managers
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.playOnAwake = false;
             audioSource.volume = volumenEfectos;
-        }
-
-        public void ReproducirAtaque()
-        {
-            if (ataque != null)
-                audioSource.PlayOneShot(ataque);
         }
 
         public void ReproducirConquista()

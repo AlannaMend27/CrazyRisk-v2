@@ -130,7 +130,7 @@ namespace CrazyRisk.Managers
                 return;
             }
 
-            ResultadoAtaque resultado = manejadorAtaques.EjecutarAtaqueConDados(dadosAtacante, dadosDefensor);
+            ManejadorAtaques.ResultadoAtaque resultado = manejadorAtaques.EjecutarAtaqueConDados(dadosAtacante, dadosDefensor);
 
             if (resultado != null && visualizadorDados != null)
             {

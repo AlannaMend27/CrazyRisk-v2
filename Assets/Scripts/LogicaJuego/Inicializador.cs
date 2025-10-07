@@ -16,9 +16,13 @@ namespace CrazyRisk.LogicaJuego
         private Lista<Jugador> jugadores;
         private Jugador jugador1;
         private Jugador jugador2;
+        private Jugador jugador3;  // NUEVO
         private Jugador jugadorNeutral;
         private Random random;
         private DistribuidorTerritorios distribuidor;
+
+        private bool crearNeutral = true;  // NUEVO
+        private int cantidadJugadores = 2;  // NUEVO
 
         public InicializadorJuego()
         {
@@ -26,58 +30,50 @@ namespace CrazyRisk.LogicaJuego
             todosContinentes = new Lista<Continente>();
             jugadores = new Lista<Jugador>();
             random = new Random();
-            
         }
 
-        /// ====== SETS Y GETS =========
-        
         public DistribuidorTerritorios GetDistribuidor()
         {
             return distribuidor;
         }
 
-        /// METODOS 
-
         /// <summary>
-        /// Inicializa todo el juego: territorios, continentes, jugadores y adyacencias
+        /// Inicializa con configuración de cantidad de jugadores
         /// </summary>
-        public void InicializarJuegoCompleto(string nombreJugador1, string colorJugador1, string nombreJugador2, string colorJugador2)
+        public void InicializarJuegoCompleto(string nombreJugador1, string colorJugador1,
+                                             string nombreJugador2, string colorJugador2,
+                                             int numJugadores, bool incluirNeutral)
         {
-            // 1. Crear continentes
+            cantidadJugadores = numJugadores;
+            crearNeutral = incluirNeutral;
+
             InicializarContinentes();
-
-            // 2. Crear todos los territorios
             InicializarTerritorios();
-
-            // 3. Configurar adyacencias entre territorios
             ConfigurarAdyacencias();
 
-            // 4. crear la instancia de distribuidor de territorios
             distribuidor = new DistribuidorTerritorios(todosLosTerritorios);
 
-            // 5. Crear jugadores
             InicializarJugadores(nombreJugador1, colorJugador1, nombreJugador2, colorJugador2);
-
-            // 6. Distribuir territorios entre jugadores
             DistribuirTerritorios();
         }
 
-        /// <summary>
-        /// Crea los 6 continentes del juego con las bonificaciones correctas
-        /// </summary>
-        private void InicializarContinentes()
+        // Sobrecarga del método original para compatibilidad
+        public void InicializarJuegoCompleto(string nombreJugador1, string colorJugador1,
+                                             string nombreJugador2, string colorJugador2)
         {
-            todosContinentes.Agregar(new Continente("North America", 9));  // 9 territorios
-            todosContinentes.Agregar(new Continente("South America", 4));  // 4 territorios
-            todosContinentes.Agregar(new Continente("Europe", 7));         // 7 territorios
-            todosContinentes.Agregar(new Continente("Africa", 6));         // 6 territorios
-            todosContinentes.Agregar(new Continente("Asia", 12));           // 12 territorios
-            todosContinentes.Agregar(new Continente("Oceania", 4));        // 4 territorios
+            InicializarJuegoCompleto(nombreJugador1, colorJugador1, nombreJugador2, colorJugador2, 2, true);
         }
 
-        /// <summary>
-        /// Crea los 42 territorios del juego usando los territorios del repositorio Conquest
-        /// </summary>
+        private void InicializarContinentes()
+        {
+            todosContinentes.Agregar(new Continente("North America", 9));
+            todosContinentes.Agregar(new Continente("South America", 4));
+            todosContinentes.Agregar(new Continente("Europe", 7));
+            todosContinentes.Agregar(new Continente("Africa", 6));
+            todosContinentes.Agregar(new Continente("Asia", 12));
+            todosContinentes.Agregar(new Continente("Oceania", 4));
+        }
+
         private void InicializarTerritorios()
         {
             // North America (9 territorios)
@@ -135,78 +131,69 @@ namespace CrazyRisk.LogicaJuego
             CrearTerritorio(42, "Eastern Australia", "Oceania");
         }
 
-        /// <summary>
-        /// Crea un territorio y lo agrega a la lista
-        /// </summary>
         private void CrearTerritorio(int id, string nombre, string continente)
         {
             Territorio nuevoTerritorio = new Territorio(id, nombre, continente);
             todosLosTerritorios.Agregar(nuevoTerritorio);
         }
 
-        /// <summary>
-        /// Configura las adyacencias entre todos los territorios según el mapa clásico de Risk
-        /// </summary>
         private void ConfigurarAdyacencias()
         {
             // North America
-            ConfigurarAdyacencia(1, new int[] { 2, 4, 30 }); // Alaska -> Northwest Territory, Alberta, Kamchatka
-            ConfigurarAdyacencia(2, new int[] { 1, 3, 4, 5 }); // Northwest Territory -> Alaska, Greenland, Alberta, Ontario
-            ConfigurarAdyacencia(3, new int[] { 2, 5, 6, 14 }); // Greenland -> Northwest Territory, Ontario, Quebec, Iceland
-            ConfigurarAdyacencia(4, new int[] { 1, 2, 7, 5 }); // Alberta -> Alaska, Northwest Territory, Western US, Ontario
-            ConfigurarAdyacencia(5, new int[] { 2, 3, 4, 6, 7, 8 }); // Ontario -> Northwest Territory, Greenland, Alberta, Quebec, Western US, Eastern US
-            ConfigurarAdyacencia(6, new int[] { 3, 5, 8 }); // Quebec -> Greenland, Ontario, Eastern US
-            ConfigurarAdyacencia(7, new int[] { 4, 5, 8, 9 }); // Western United States -> Alberta, Ontario, Eastern US, Central America
-            ConfigurarAdyacencia(8, new int[] { 5, 6, 7, 9 }); // Eastern United States -> Ontario, Quebec, Western US, Central America
-            ConfigurarAdyacencia(9, new int[] { 7, 8, 10 }); // Central America -> Western US, Eastern US, Venezuela
+            ConfigurarAdyacencia(1, new int[] { 2, 4, 30 });
+            ConfigurarAdyacencia(2, new int[] { 1, 3, 4, 5 });
+            ConfigurarAdyacencia(3, new int[] { 2, 5, 6, 14 });
+            ConfigurarAdyacencia(4, new int[] { 1, 2, 7, 5 });
+            ConfigurarAdyacencia(5, new int[] { 2, 3, 4, 6, 7, 8 });
+            ConfigurarAdyacencia(6, new int[] { 3, 5, 8 });
+            ConfigurarAdyacencia(7, new int[] { 4, 5, 8, 9 });
+            ConfigurarAdyacencia(8, new int[] { 5, 6, 7, 9 });
+            ConfigurarAdyacencia(9, new int[] { 7, 8, 10 });
 
             // South America
-            ConfigurarAdyacencia(10, new int[] { 9, 11, 12 }); // Venezuela -> Central America, Brazil, Peru
-            ConfigurarAdyacencia(11, new int[] { 10, 12, 13, 21 }); // Brazil -> Venezuela, Peru, Argentina, North Africa
-            ConfigurarAdyacencia(12, new int[] { 10, 11, 13 }); // Peru -> Venezuela, Brazil, Argentina
-            ConfigurarAdyacencia(13, new int[] { 11, 12 }); // Argentina -> Brazil, Peru
+            ConfigurarAdyacencia(10, new int[] { 9, 11, 12 });
+            ConfigurarAdyacencia(11, new int[] { 10, 12, 13, 21 });
+            ConfigurarAdyacencia(12, new int[] { 10, 11, 13 });
+            ConfigurarAdyacencia(13, new int[] { 11, 12 });
 
             // Europe
-            ConfigurarAdyacencia(14, new int[] { 3, 15, 16 }); // Iceland -> Greenland, Great Britain, Scandinavia
-            ConfigurarAdyacencia(15, new int[] { 14, 16, 17, 18 }); // Great Britain -> Iceland, Scandinavia, Northern Europe, Western Europe
-            ConfigurarAdyacencia(16, new int[] { 14, 15, 17, 20 }); // Scandinavia -> Iceland, Great Britain, Northern Europe, Ukraine
-            ConfigurarAdyacencia(17, new int[] { 15, 16, 18, 19, 20 }); // Northern Europe -> Great Britain, Scandinavia, Western Europe, Southern Europe, Ukraine
-            ConfigurarAdyacencia(18, new int[] { 15, 17, 19, 21 }); // Western Europe -> Great Britain, Northern Europe, Southern Europe, North Africa
-            ConfigurarAdyacencia(19, new int[] { 17, 18, 20, 21, 22, 37 }); // Southern Europe -> Northern Europe, Western Europe, Ukraine, North Africa, Egypt, Middle East
-            ConfigurarAdyacencia(20, new int[] { 16, 17, 19, 27, 37, 38 }); // Ukraine -> Scandinavia, Northern Europe, Southern Europe, Ural, Middle East, Afghanistan
+            ConfigurarAdyacencia(14, new int[] { 3, 15, 16 });
+            ConfigurarAdyacencia(15, new int[] { 14, 16, 17, 18 });
+            ConfigurarAdyacencia(16, new int[] { 14, 15, 17, 20 });
+            ConfigurarAdyacencia(17, new int[] { 15, 16, 18, 19, 20 });
+            ConfigurarAdyacencia(18, new int[] { 15, 17, 19, 21 });
+            ConfigurarAdyacencia(19, new int[] { 17, 18, 20, 21, 22, 37 });
+            ConfigurarAdyacencia(20, new int[] { 16, 17, 19, 27, 37, 38 });
 
             // Africa
-            ConfigurarAdyacencia(21, new int[] { 11, 18, 19, 22, 23, 24 }); // North Africa -> Brazil, Western Europe, Southern Europe, Egypt, East Africa, Congo
-            ConfigurarAdyacencia(22, new int[] { 19, 21, 23, 37 }); // Egypt -> Southern Europe, North Africa, East Africa, Middle East
-            ConfigurarAdyacencia(23, new int[] { 21, 22, 24, 25, 26, 37 }); // East Africa -> North Africa, Egypt, Congo, South Africa, Madagascar, Middle East
-            ConfigurarAdyacencia(24, new int[] { 21, 23, 25 }); // Congo -> North Africa, East Africa, South Africa
-            ConfigurarAdyacencia(25, new int[] { 23, 24, 26 }); // South Africa -> East Africa, Congo, Madagascar
-            ConfigurarAdyacencia(26, new int[] { 23, 25 }); // Madagascar -> East Africa, South Africa
+            ConfigurarAdyacencia(21, new int[] { 11, 18, 19, 22, 23, 24 });
+            ConfigurarAdyacencia(22, new int[] { 19, 21, 23, 37 });
+            ConfigurarAdyacencia(23, new int[] { 21, 22, 24, 25, 26, 37 });
+            ConfigurarAdyacencia(24, new int[] { 21, 23, 25 });
+            ConfigurarAdyacencia(25, new int[] { 23, 24, 26 });
+            ConfigurarAdyacencia(26, new int[] { 23, 25 });
 
             // Asia
-            ConfigurarAdyacencia(27, new int[] { 20, 28, 34, 38 }); // Ural -> Ukraine, Siberia, China, Afghanistan
-            ConfigurarAdyacencia(28, new int[] { 27, 29, 31, 32, 34 }); // Siberia -> Ural, Yakutsk, Irkutsk, Mongolia, China
-            ConfigurarAdyacencia(29, new int[] { 28, 30, 31 }); // Yakutsk -> Siberia, Kamchatka, Irkutsk
-            ConfigurarAdyacencia(30, new int[] { 1, 29, 31, 32, 33 }); // Kamchatka -> Alaska, Yakutsk, Irkutsk, Mongolia, Japan
-            ConfigurarAdyacencia(31, new int[] { 28, 29, 30, 32 }); // Irkutsk -> Siberia, Yakutsk, Kamchatka, Mongolia
-            ConfigurarAdyacencia(32, new int[] { 28, 30, 31, 33, 34 }); // Mongolia -> Siberia, Kamchatka, Irkutsk, Japan, China
-            ConfigurarAdyacencia(33, new int[] { 30, 32 }); // Japan -> Kamchatka, Mongolia
-            ConfigurarAdyacencia(34, new int[] { 27, 28, 32, 35, 36, 38 }); // China -> Ural, Siberia, Mongolia, India, Siam, Afghanistan
-            ConfigurarAdyacencia(35, new int[] { 34, 36, 37, 38 }); // India -> China, Siam, Middle East, Afghanistan
-            ConfigurarAdyacencia(36, new int[] { 34, 35, 39 }); // Siam -> China, India, Indonesia
-            ConfigurarAdyacencia(37, new int[] { 19, 20, 22, 23, 35, 38 }); // Middle East -> Southern Europe, Ukraine, Egypt, East Africa, India, Afghanistan
-            ConfigurarAdyacencia(38, new int[] { 20, 27, 34, 35, 37 }); // Afghanistan -> Ukraine, Ural, China, India, Middle East
+            ConfigurarAdyacencia(27, new int[] { 20, 28, 34, 38 });
+            ConfigurarAdyacencia(28, new int[] { 27, 29, 31, 32, 34 });
+            ConfigurarAdyacencia(29, new int[] { 28, 30, 31 });
+            ConfigurarAdyacencia(30, new int[] { 1, 29, 31, 32, 33 });
+            ConfigurarAdyacencia(31, new int[] { 28, 29, 30, 32 });
+            ConfigurarAdyacencia(32, new int[] { 28, 30, 31, 33, 34 });
+            ConfigurarAdyacencia(33, new int[] { 30, 32 });
+            ConfigurarAdyacencia(34, new int[] { 27, 28, 32, 35, 36, 38 });
+            ConfigurarAdyacencia(35, new int[] { 34, 36, 37, 38 });
+            ConfigurarAdyacencia(36, new int[] { 34, 35, 39 });
+            ConfigurarAdyacencia(37, new int[] { 19, 20, 22, 23, 35, 38 });
+            ConfigurarAdyacencia(38, new int[] { 20, 27, 34, 35, 37 });
 
             // Oceania
-            ConfigurarAdyacencia(39, new int[] { 36, 40, 41 }); // Indonesia -> Siam, New Guinea, Western Australia
-            ConfigurarAdyacencia(40, new int[] { 39, 41, 42 }); // New Guinea -> Indonesia, Western Australia, Eastern Australia
-            ConfigurarAdyacencia(41, new int[] { 39, 40, 42 }); // Western Australia -> Indonesia, New Guinea, Eastern Australia
-            ConfigurarAdyacencia(42, new int[] { 40, 41 }); // Eastern Australia -> New Guinea, Western Australia
+            ConfigurarAdyacencia(39, new int[] { 36, 40, 41 });
+            ConfigurarAdyacencia(40, new int[] { 39, 41, 42 });
+            ConfigurarAdyacencia(41, new int[] { 39, 40, 42 });
+            ConfigurarAdyacencia(42, new int[] { 40, 41 });
         }
 
-        /// <summary>
-        /// Configura adyacencias bidireccionales para un territorio
-        /// </summary>
         private void ConfigurarAdyacencia(int territorioId, int[] adyacentes)
         {
             Territorio territorio = BuscarTerritorioPorId(territorioId);
@@ -215,8 +202,6 @@ namespace CrazyRisk.LogicaJuego
                 for (int i = 0; i < adyacentes.Length; i++)
                 {
                     territorio.AgregarAdyacente(adyacentes[i]);
-
-                    // Configurar adyacencia bidireccional
                     Territorio territorioAdyacente = BuscarTerritorioPorId(adyacentes[i]);
                     if (territorioAdyacente != null)
                     {
@@ -226,9 +211,6 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
-        /// <summary>
-        /// Busca un territorio por su ID
-        /// </summary>
         private Territorio BuscarTerritorioPorId(int id)
         {
             for (int i = 0; i < todosLosTerritorios.getSize(); i++)
@@ -241,51 +223,51 @@ namespace CrazyRisk.LogicaJuego
             return null;
         }
 
-        /// <summary>
-        /// Crea los jugadores del juego
-        /// </summary>
         private void InicializarJugadores(string nombre1, string color1, string nombre2, string color2)
         {
             jugador1 = new Jugador(1, nombre1, color1);
             jugador2 = new Jugador(2, nombre2, color2);
-            jugadorNeutral = Jugador.CrearJugadorNeutral(3, "Gris");
 
             jugadores.Agregar(jugador1);
             jugadores.Agregar(jugador2);
-            jugadores.Agregar(jugadorNeutral);
+
+            if (cantidadJugadores == 3 && !crearNeutral)
+            {
+                jugador3 = new Jugador(3, "Jugador 3", "Azul");
+                jugadores.Agregar(jugador3);
+            }
+            else if (crearNeutral)
+            {
+                jugadorNeutral = Jugador.CrearJugadorNeutral(3, "Gris");
+                jugadores.Agregar(jugadorNeutral);
+            }
         }
 
-        /// <summary>
-        /// Distribuye territorios entre jugadores usando DistribuidorTerritorios
-        /// </summary>
         private void DistribuirTerritorios()
         {
-            // Distribuir los 42 territorios (14 por jugador)
-            distribuidor.DistribuirTerritorios(jugador1.getId(), jugador2.getId(), jugadorNeutral.getId());
+            // Obtener IDs de todos los jugadores activos
+            Lista<int> idsActivos = new Lista<int>();
+            for (int i = 0; i < jugadores.getSize(); i++)
+            {
+                idsActivos.Agregar(jugadores[i].getId());
+            }
 
-            // Actualizar las listas de territorios de cada jugador
+            distribuidor.DistribuirTerritorios(idsActivos);
             ActualizarTerritoriosJugadores();
         }
 
-
-        /// <summary>
-        /// Actualiza las listas de territorios controlados por cada jugador
-        /// </summary>
         private void ActualizarTerritoriosJugadores()
         {
-            // Limpiar listas actuales
             for (int i = 0; i < jugadores.getSize(); i++)
             {
                 jugadores[i].setTerritoriosControlados(new Lista<Territorio>());
             }
 
-            // Reagrupar territorios por propietario
             for (int i = 0; i < todosLosTerritorios.getSize(); i++)
             {
                 Territorio territorio = todosLosTerritorios[i];
                 int propietarioId = territorio.PropietarioId;
 
-                // Buscar jugador correspondiente y agregar territorio
                 for (int j = 0; j < jugadores.getSize(); j++)
                 {
                     if (jugadores[j].getId() == propietarioId)
@@ -297,9 +279,9 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
-        // Métodos públicos para obtener datos del juego
         public Lista<Territorio> getTerritorios() { return todosLosTerritorios; }
         public Lista<Continente> getContinentes() { return todosContinentes; }
         public Lista<Jugador> getJugadores() { return jugadores; }
-    }
-}
+        public Jugador GetJugador3() => jugador3;
+    } 
+} 

@@ -80,6 +80,10 @@ namespace CrazyRisk.Modelos
             this.esNeutral = data;
         }
 
+        public void setNombre(string nuevoNombre)
+        {
+            nombre = nuevoNombre;
+        }
 
         public Lista<Territorio> getTerritoriosControlados()
         {

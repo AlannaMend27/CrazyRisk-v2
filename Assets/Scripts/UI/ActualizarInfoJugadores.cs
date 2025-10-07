@@ -6,7 +6,12 @@ using CrazyRisk.LogicaJuego;
 
 public class ActualizadorInfoJugadores : MonoBehaviour
 {
-    [Header("Textos de Jugadores")]
+    [Header("Textos de Nombres")]
+    [SerializeField] private TextMeshProUGUI j1_nombre;
+    [SerializeField] private TextMeshProUGUI j2_nombre;
+    [SerializeField] private TextMeshProUGUI j3_nombre;
+
+    [Header("Textos de Información")]
     [SerializeField] private TextMeshProUGUI infoJ1;
     [SerializeField] private TextMeshProUGUI infoJ2;
     [SerializeField] private TextMeshProUGUI infoJ3;
@@ -30,17 +35,48 @@ public class ActualizadorInfoJugadores : MonoBehaviour
 
         var j1 = gameManager.GetJugador1();
         var j2 = gameManager.GetJugador2();
-        var j3 = gameManager.GetJugadorNeutral();
+        var j3 = gameManager.GetJugador3();
+        var neutral = gameManager.GetJugadorNeutral();
 
-        if (j1 != null && infoJ1 != null)
-            infoJ1.text = GenerarTextoJugador(j1);
+        // Actualizar Jugador 1
+        if (j1 != null)
+        {
+            if (j1_nombre != null)
+                j1_nombre.text = j1.getNombre();
 
-        if (j2 != null && infoJ2 != null)
-            infoJ2.text = GenerarTextoJugador(j2);
+            if (infoJ1 != null)
+                infoJ1.text = GenerarTextoJugador(j1);
+        }
 
-        if (j3 != null && infoJ3 != null)
-            infoJ3.text = GenerarTextoJugador(j3);
+        // Actualizar Jugador 2
+        if (j2 != null)
+        {
+            if (j2_nombre != null)
+                j2_nombre.text = j2.getNombre();
 
+            if (infoJ2 != null)
+                infoJ2.text = GenerarTextoJugador(j2);
+        }
+
+        // Actualizar Jugador 3 o Neutral
+        if (j3 != null)
+        {
+            if (j3_nombre != null)
+                j3_nombre.text = j3.getNombre();
+
+            if (infoJ3 != null)
+                infoJ3.text = GenerarTextoJugador(j3);
+        }
+        else if (neutral != null)
+        {
+            if (j3_nombre != null)
+                j3_nombre.text = neutral.getNombre();
+
+            if (infoJ3 != null)
+                infoJ3.text = GenerarTextoJugador(neutral);
+        }
+
+        // Actualizar contador global
         if (textoContadorGlobal != null && manejadorRefuerzos != null)
         {
             int contador = manejadorRefuerzos.GetContadorGlobal();
@@ -68,6 +104,7 @@ public class ActualizadorInfoJugadores : MonoBehaviour
             }
         }
 
+        // AHORA EL NOMBRE NO SE INCLUYE AQUÍ
         return $"Territorios: {jugador.getCantidadTerritorios()}\n" +
                $"Tropas: {jugador.getTotalTropas()}\n" +
                $"Infanteria: {infanteria}\n" +

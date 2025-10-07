@@ -4,6 +4,7 @@ using CrazyRisk.Modelos;
 using CrazyRisk.Estructuras;
 using CrazyRisk.Red;
 using TMPro;
+using Newtonsoft.Json;
 
 namespace CrazyRisk.Managers
 {
@@ -33,12 +34,14 @@ namespace CrazyRisk.Managers
         // Sistema de lógica del juego
         private InicializadorJuego inicializadorJuego;
         private Lista<Territorio> territoriosLogica;
-        private Jugador jugador1, jugador2, jugadorNeutral;
+        private Jugador jugador1, jugador2, jugador3, jugadorNeutral;
         private DetectorVictoria detectorVictoria;
         private ManejadorAtaques manejadorAtaques = new ManejadorAtaques();
+        private ManejadorPlaneacion manejadorPlaneacion;
 
         //Estado de preparacion
         private bool enFasePreparacion = false;
+        private bool crearNeutral = true;
         private DistribuidorTerritorios distribuidor;
 
         // Sistema de red
@@ -55,14 +58,14 @@ namespace CrazyRisk.Managers
                 PanelDatos.SetActive(false);
 
             detectorVictoria = new DetectorVictoria();
+            manejadorAtaques = new ManejadorAtaques();
+            manejadorPlaneacion = new ManejadorPlaneacion();
 
             VerificarJuegoEnRed();
             InicializarJuego();
 
             InvokeRepeating("VerificarEstadoPartida", 2f, 2f);
         }
-
-        public ManejadorAtaques GetManejadorAtaques() => manejadorAtaques;
 
         private void VerificarJuegoEnRed()
         {
@@ -74,12 +77,16 @@ namespace CrazyRisk.Managers
                 {
                     esJuegoEnRed = false;
                     cantidadJugadoresRed = 2;
+                    crearNeutral = true;  // Modo solitario siempre con neutral
                     Debug.Log("Modo solitario detectado - Sin networking");
                     return;
                 }
 
                 esJuegoEnRed = true;
                 cantidadJugadoresRed = PlayerPrefs.GetInt("CantidadJugadores", 2);
+
+                // Si son 3 jugadores en red, NO crear neutral
+                crearNeutral = (cantidadJugadoresRed == 2);
 
                 string nombreRed = PlayerPrefs.GetString("NombreJugador", "Jugador1");
                 bool esServidor = PlayerPrefs.GetInt("EsServidor", 1) == 1;
@@ -90,7 +97,7 @@ namespace CrazyRisk.Managers
                     nombreJugador2 = nombreRed;
 
                 CrearAdministradorRed();
-                Debug.Log($"Juego en red detectado: {cantidadJugadoresRed} jugadores");
+                Debug.Log($"Juego en red detectado: {cantidadJugadoresRed} jugadores - Neutral: {crearNeutral}");
             }
         }
 
@@ -110,14 +117,32 @@ namespace CrazyRisk.Managers
             if (esJuegoEnRed)
                 InicializarJuegoEnRed();
             else
-                inicializadorJuego.InicializarJuegoCompleto(nombreJugador1, colorJugador1, nombreJugador2, colorJugador2);
+            {
+                inicializadorJuego.InicializarJuegoCompleto(
+                    nombreJugador1, colorJugador1,
+                    nombreJugador2, colorJugador2,
+                    cantidadJugadoresRed, crearNeutral);
+            }
 
             territoriosLogica = inicializadorJuego.getTerritorios();
+            if (manejadorPlaneacion != null)
+            {
+                manejadorPlaneacion.InicializarConTerritorios(territoriosLogica);
+            }
+
             Lista<Jugador> jugadores = inicializadorJuego.getJugadores();
 
             jugador1 = jugadores[0];
             jugador2 = jugadores[1];
-            jugadorNeutral = jugadores[2];
+
+            if (jugadores.getSize() == 3)
+            {
+                // Verificar si es neutral o jugador 3
+                if (jugadores[2].getEsNeutral())
+                    jugadorNeutral = jugadores[2];
+                else
+                    jugador3 = jugadores[2];
+            }
 
             distribuidor = inicializadorJuego.GetDistribuidor();
 
@@ -137,22 +162,31 @@ namespace CrazyRisk.Managers
         private void IniciarFasePreparacion()
         {
             enFasePreparacion = true;
-
             if (distribuidor == null)
             {
                 Debug.LogError("❌ Distribuidor no está disponible");
                 return;
             }
-
-            Debug.Log(">>> Suscribiendo eventos del distribuidor...");
-
             distribuidor.OnTropaColocada += ActualizarTerritorioEspecifico;
             distribuidor.OnCambioTurno += ActualizarPanelDatos;
             distribuidor.OnPreparacionCompletada += FinalizarFasePreparacion;
 
-            Debug.Log(">>> Eventos suscritos correctamente");
+            // Crear lista de IDs activos
+            Lista<int> idsActivos = new Lista<int>();
+            idsActivos.Agregar(1);
+            idsActivos.Agregar(2);
+            int idNeutral = -1;
 
-            distribuidor.IniciarFasePreparacion(1, 2, 3);
+            if (jugador3 != null)
+                idsActivos.Agregar(3);
+            else if (jugadorNeutral != null)
+            {
+                idsActivos.Agregar(3);
+                idNeutral = 3; // Marcar que el ID 3 es neutral
+            }
+
+            Lista<Jugador> jugadores = inicializadorJuego.getJugadores();
+            distribuidor.IniciarFasePreparacion(idsActivos, idNeutral, jugadores);
 
             if (PanelDatos != null)
                 PanelDatos.SetActive(true);
@@ -176,8 +210,6 @@ namespace CrazyRisk.Managers
             {
                 Debug.LogWarning($"No se encontró TerritorioUI para: {nombreTerritorio}");
             }
-
-            
         }
 
         /// <summary>
@@ -185,34 +217,38 @@ namespace CrazyRisk.Managers
         /// </summary>
         private void ActualizarTerritoriosJugadores()
         {
-            // Limpiar listas actuales
             jugador1.setTerritoriosControlados(new Lista<Territorio>());
             jugador2.setTerritoriosControlados(new Lista<Territorio>());
-            jugadorNeutral.setTerritoriosControlados(new Lista<Territorio>());
 
-            // Reagrupar territorios según el propietario actual
+            if (jugador3 != null)
+                jugador3.setTerritoriosControlados(new Lista<Territorio>());
+            if (jugadorNeutral != null)
+                jugadorNeutral.setTerritoriosControlados(new Lista<Territorio>());
+
             for (int i = 0; i < territoriosLogica.getSize(); i++)
             {
                 Territorio territorio = territoriosLogica[i];
 
-                if (territorio.PropietarioId == jugador1.getId())
-                {
+                if (territorio.PropietarioId == 1)
                     jugador1.getTerritoriosControlados().Agregar(territorio);
-                }
-                else if (territorio.PropietarioId == jugador2.getId())
-                {
+                else if (territorio.PropietarioId == 2)
                     jugador2.getTerritoriosControlados().Agregar(territorio);
-                }
-                else if (territorio.PropietarioId == jugadorNeutral.getId())
+                else if (territorio.PropietarioId == 3)
                 {
-                    jugadorNeutral.getTerritoriosControlados().Agregar(territorio);
+                    if (jugador3 != null)
+                        jugador3.getTerritoriosControlados().Agregar(territorio);
+                    else if (jugadorNeutral != null)
+                        jugadorNeutral.getTerritoriosControlados().Agregar(territorio);
                 }
             }
 
             Debug.Log($"✓ Territorios actualizados:");
             Debug.Log($"  {jugador1.getNombre()}: {jugador1.getCantidadTerritorios()} territorios");
             Debug.Log($"  {jugador2.getNombre()}: {jugador2.getCantidadTerritorios()} territorios");
-            Debug.Log($"  Neutral: {jugadorNeutral.getCantidadTerritorios()} territorios");
+            if (jugador3 != null)
+                Debug.Log($"  {jugador3.getNombre()}: {jugador3.getCantidadTerritorios()} territorios");
+            if (jugadorNeutral != null)
+                Debug.Log($"  Neutral: {jugadorNeutral.getCantidadTerritorios()} territorios");
         }
 
         /// <summary>
@@ -227,7 +263,7 @@ namespace CrazyRisk.Managers
             {
                 int jugadorActualId = distribuidor.GetJugadorActual();
                 int tropasRestantes = distribuidor.GetTropasRestantesJugadorActual();
-                string nombreJugador = distribuidor.GetNombreJugadorActual();
+                string nombreJugador = ObtenerNombreJugador(jugadorActualId);
 
                 DatosFase.text = $"FASE DE PREPARACIÓN\n" +
                                 $"Turno: {nombreJugador}\n" +
@@ -280,36 +316,45 @@ namespace CrazyRisk.Managers
         /// </summary>
         public bool IntentarColocarTropaPreparacion(string nombreTerritorio)
         {
-            Debug.Log($">>> IntentarColocarTropaPreparacion llamado para: {nombreTerritorio}");
-            Debug.Log($"    enFasePreparacion: {enFasePreparacion}");
-            Debug.Log($"    distribuidor != null: {distribuidor != null}");
-
             if (!enFasePreparacion || distribuidor == null)
-            {
-                Debug.LogWarning("No estás en fase de preparación");
                 return false;
+
+            // MODO RED: Enviar acción al servidor
+            if (esJuegoEnRed && administradorRed != null)
+            {
+                if (!administradorRed.EsMiTurno())
+                {
+                    Debug.LogWarning("No es tu turno");
+                    return false;
+                }
+
+                AccionJuego accion = new AccionJuego
+                {
+                    tipo = "COLOCAR_TROPA_PREPARACION",
+                    territorioOrigen = nombreTerritorio,
+                    cantidad = 1
+                };
+
+                administradorRed.EnviarAccionJuego(accion);
+
+                // NO ejecutar localmente, esperar confirmación del servidor
+                return true;
             }
 
+            // MODO LOCAL: Ejecutar directamente
             bool exito = distribuidor.IntentarColocarTropa(nombreTerritorio);
-
             if (exito)
             {
-                // Actualizar visualización del territorio
                 TerritorioUI territorioUI = BuscarTerritorioUIPorNombre(nombreTerritorio);
                 if (territorioUI != null)
                 {
                     territorioUI.ActualizarInterfaz();
-                    Debug.Log($"UI actualizada para: {nombreTerritorio}");
                 }
-
-                // Actualizar UI de preparación
                 ActualizarPanelDatos();
-
             }
 
             return exito;
         }
-
         /// <summary>
         /// Finaliza la fase de preparación e inicia el juego normal
         /// </summary>
@@ -327,7 +372,7 @@ namespace CrazyRisk.Managers
 
             // cambiar el texto del panel de información sobre la fase
             ActualizarPanelDatos();
-            
+
 
             // Actualizar territorios antes de iniciar turnos
             ActualizarTerritoriosJugadores();
@@ -340,7 +385,21 @@ namespace CrazyRisk.Managers
 
         private void InicializarJuegoEnRed()
         {
-            inicializadorJuego.InicializarJuegoCompleto(nombreJugador1, colorJugador1, nombreJugador2, colorJugador2);
+            string nombre1 = nombreJugador1;  
+            string nombre2 = nombreJugador2;  
+
+            bool esServidor = PlayerPrefs.GetInt("EsServidor", 1) == 1;
+            string nombreRed = PlayerPrefs.GetString("NombreJugador", "Jugador1");
+
+            if (esServidor)
+                nombre1 = nombreRed;
+            else
+                nombre2 = nombreRed;
+
+            inicializadorJuego.InicializarJuegoCompleto(
+                nombre1, colorJugador1,
+                nombre2, colorJugador2,
+                cantidadJugadoresRed, crearNeutral);
         }
 
         private void InicializarSistemaTurnos()
@@ -467,24 +526,53 @@ namespace CrazyRisk.Managers
             }
         }
 
+        private string ObtenerNombreJugador(int jugadorId)
+        {
+            if (jugadorId == 1 && jugador1 != null)
+                return jugador1.getNombre();
+            else if (jugadorId == 2 && jugador2 != null)
+                return jugador2.getNombre();
+            else if (jugadorId == 3)
+            {
+                if (jugador3 != null)
+                    return jugador3.getNombre();
+                else if (jugadorNeutral != null)
+                    return jugadorNeutral.getNombre();
+            }
+
+            return $"Jugador {jugadorId}";
+        }
+
         private Color ObtenerColorPorJugador(int jugadorId)
         {
-            if (jugadorId == jugador1.getId())
+            if (jugadorId == 1)
                 return Color.green;
-            else if (jugadorId == jugador2.getId())
-                return new Color(0.5f, 0f, 0.8f);
-            else if (jugadorId == jugadorNeutral.getId())
-                return Color.gray;
+            else if (jugadorId == 2)
+                return new Color(0.5f, 0f, 0.8f);  // Morado
+            else if (jugadorId == 3)
+            {
+                if (jugador3 != null)
+                    return Color.cyan;  // Azul para jugador 3
+                else
+                    return Color.gray;  // Gris para neutral
+            }
 
             return Color.white;
         }
+
+        // Agregar getter
+        public Jugador GetJugador3() => jugador3;
 
         private void MostrarEstadisticas()
         {
             Debug.Log("=== ESTADÍSTICAS DEL JUEGO ===");
             Debug.Log($"{jugador1.getNombre()}: {jugador1.getCantidadTerritorios()} territorios, {jugador1.getTotalTropas()} tropas");
             Debug.Log($"{jugador2.getNombre()}: {jugador2.getCantidadTerritorios()} territorios, {jugador2.getTotalTropas()} tropas");
-            Debug.Log($"Neutral: {jugadorNeutral.getCantidadTerritorios()} territorios, {jugadorNeutral.getTotalTropas()} tropas");
+
+            if (jugador3 != null)
+                Debug.Log($"{jugador3.getNombre()}: {jugador3.getCantidadTerritorios()} territorios, {jugador3.getTotalTropas()} tropas");
+            else if (jugadorNeutral != null)
+                Debug.Log($"Neutral: {jugadorNeutral.getCantidadTerritorios()} territorios, {jugadorNeutral.getTotalTropas()} tropas");
 
             if (esJuegoEnRed)
                 Debug.Log($"Modo Red: {cantidadJugadoresRed} jugadores - {(administradorRed?.EsServidor() == true ? "SERVIDOR" : "CLIENTE")}");
@@ -533,7 +621,8 @@ namespace CrazyRisk.Managers
 
                 if (idActual == 1) return jugador1;
                 if (idActual == 2) return jugador2;
-                if (idActual == 3) return jugadorNeutral;
+                if (idActual == 3)
+                    return jugador3 != null ? jugador3 : jugadorNeutral;
             }
             else if (manejadorTurnos != null)
             {
@@ -541,6 +630,194 @@ namespace CrazyRisk.Managers
             }
 
             return null;
+        }
+        public void EjecutarAccionDesdeRed(string datosJson)
+        {
+            try
+            {
+                AccionJuego accion = JsonConvert.DeserializeObject<AccionJuego>(datosJson);
+
+                switch (accion.tipo)
+                {
+                    case "COLOCAR_TROPA_PREPARACION":
+                        EjecutarColocarTropaPreparacion(accion.territorioOrigen);
+                        break;
+
+                    case "COLOCAR_REFUERZO":
+                        EjecutarColocarRefuerzo(accion.territorioOrigen);
+                        break;
+
+                    case "ATACAR":
+                        EjecutarAtaqueRed(accion);
+                        break;
+
+                    case "MOVER_TROPAS":
+                        EjecutarMovimientoTropas(accion);
+                        break;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Error ejecutando acción desde red: {e.Message}");
+            }
+        }
+
+        private void EjecutarColocarTropaPreparacion(string nombreTerritorio)
+        {
+            if (distribuidor != null && distribuidor.EstaEnFasePreparacion())
+            {
+                distribuidor.IntentarColocarTropa(nombreTerritorio);
+                TerritorioUI territorioUI = BuscarTerritorioUIPorNombre(nombreTerritorio);
+                if (territorioUI != null)
+                {
+                    territorioUI.ActualizarInterfaz();
+                }
+                ActualizarPanelDatos();
+            }
+        }
+
+        private void EjecutarColocarRefuerzo(string nombreTerritorio)
+        {
+            Territorio territorio = BuscarTerritorioPorNombre(nombreTerritorio);
+            if (territorio != null && manejadorTurnos != null)
+            {
+                territorio.AgregarTropas(1);
+                manejadorTurnos.UsarRefuerzo();
+
+                TerritorioUI territorioUI = BuscarTerritorioUIPorNombre(nombreTerritorio);
+                if (territorioUI != null)
+                {
+                    territorioUI.ActualizarInterfaz();
+                }
+            }
+        }
+
+        private void EjecutarAtaqueRed(AccionJuego accion)
+        {
+            Territorio atacante = BuscarTerritorioPorNombre(accion.territorioOrigen);
+            Territorio defensor = BuscarTerritorioPorNombre(accion.territorioDestino);
+
+            if (atacante == null || defensor == null)
+                return;
+
+            if (manejadorAtaques == null)
+                manejadorAtaques = new ManejadorAtaques();
+
+            manejadorAtaques.SeleccionarAtacante(atacante, accion.jugadorId);
+            manejadorAtaques.SeleccionarDefensor(defensor, accion.jugadorId);
+
+            ManejadorAtaques.ResultadoAtaque resultado = manejadorAtaques.EjecutarAtaqueConDados(
+                accion.dadosAtacante,
+                accion.dadosDefensor
+            );
+
+
+            if (resultado != null)
+            {
+                ActualizarTerritorioEspecifico(accion.territorioOrigen);
+                ActualizarTerritorioEspecifico(accion.territorioDestino);
+
+                if (resultado.conquistado)
+                {
+                    Color colorJugador = ObtenerColorPorJugador(accion.jugadorId);
+                    TerritorioUI defensorUI = BuscarTerritorioUIPorNombre(accion.territorioDestino);
+                    if (defensorUI != null)
+                    {
+                        defensorUI.CambiarColor(colorJugador);
+                    }
+                }
+            }
+        }
+
+        private void EjecutarMovimientoTropas(AccionJuego accion)
+        {
+            Territorio origen = BuscarTerritorioPorNombre(accion.territorioOrigen);
+            Territorio destino = BuscarTerritorioPorNombre(accion.territorioDestino);
+
+            if (origen != null && destino != null)
+            {
+                origen.CantidadTropas -= accion.cantidad;
+                destino.CantidadTropas += accion.cantidad;
+
+                ActualizarTerritorioEspecifico(accion.territorioOrigen);
+                ActualizarTerritorioEspecifico(accion.territorioDestino);
+            }
+        }
+
+        private Territorio BuscarTerritorioPorNombre(string nombre)
+        {
+            for (int i = 0; i < territoriosLogica.getSize(); i++)
+            {
+                if (territoriosLogica[i].Nombre == nombre)
+                {
+                    return territoriosLogica[i];
+                }
+            }
+            return null;
+        }
+
+        public EstadoJuego ObtenerEstadoActual()
+        {
+            EstadoJuego estado = new EstadoJuego();
+
+            if (territoriosLogica != null)
+            {
+                estado.territoriosPropietarios = new int[territoriosLogica.getSize()];
+                estado.territoriosTropas = new int[territoriosLogica.getSize()];
+
+                for (int i = 0; i < territoriosLogica.getSize(); i++)
+                {
+                    estado.territoriosPropietarios[i] = territoriosLogica[i].PropietarioId;
+                    estado.territoriosTropas[i] = territoriosLogica[i].CantidadTropas;
+                }
+
+                estado.enFasePreparacion = enFasePreparacion;
+
+                if (manejadorTurnos != null)
+                {
+                    estado.faseActual = manejadorTurnos.GetFaseActual().ToString();
+                    estado.refuerzosDisponibles = manejadorTurnos.GetRefuerzosDisponibles();
+                }
+            }
+
+            return estado;
+        }
+
+        public void ActualizarDesdeEstadoCompleto(EstadoJuego estado)
+        {
+            if (territoriosLogica == null || estado.territoriosPropietarios == null)
+                return;
+
+            for (int i = 0; i < territoriosLogica.getSize() && i < estado.territoriosPropietarios.Length; i++)
+            {
+                territoriosLogica[i].PropietarioId = estado.territoriosPropietarios[i];
+                territoriosLogica[i].CantidadTropas = estado.territoriosTropas[i];
+            }
+
+            ActualizarColoresTerritorios();
+            ActualizarVisualizacionCompleta();
+        }
+
+        public void ActualizarTurnoDesdeRed(int jugadorIdEnTurno)
+        {
+            Debug.Log($"Turno actualizado desde red: Jugador {jugadorIdEnTurno}");
+        }
+
+        public bool EsMiTurno()
+        {
+            if (esJuegoEnRed && administradorRed != null)
+            {
+                return administradorRed.EsMiTurno();
+            }
+            return true;
+        }
+
+        public ManejadorAtaques GetManejadorAtaques() => manejadorAtaques;
+        public ManejadorPlaneacion GetManejadorPlaneacion() => manejadorPlaneacion;
+
+        void OnDestroy()
+        {
+            TerritorioUI.LimpiarSeleccionesEstaticas();
         }
     }
 }

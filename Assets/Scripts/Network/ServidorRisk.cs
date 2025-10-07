@@ -19,8 +19,9 @@ namespace CrazyRisk.Red
         private List<ClienteConectado> clientes = new List<ClienteConectado>();
         private Thread hiloServidor;
         private bool activo = false;
+        private int jugadorEnTurno = 1;
+        private int cantidadJugadoresConectados = 1; // El servidor es jugador 1
 
-        // Eventos
         public System.Action<MensajeRed> OnMensajeRecibido;
         public System.Action<string> OnClienteConectado;
         public System.Action OnClienteDesconectado;
@@ -40,9 +41,6 @@ namespace CrazyRisk.Red
             DontDestroyOnLoad(gameObject);
         }
 
-        /// <summary>
-        /// Inicia el servidor TCP/IP
-        /// </summary>
         public bool IniciarServidor(string nombreHost)
         {
             try
@@ -64,9 +62,6 @@ namespace CrazyRisk.Red
             }
         }
 
-        /// <summary>
-        /// Escucha nuevas conexiones en hilo separado
-        /// </summary>
         private void EscucharConexiones()
         {
             while (activo)
@@ -87,28 +82,24 @@ namespace CrazyRisk.Red
             }
         }
 
-        /// <summary>
-        /// Agrega un nuevo cliente a la lista
-        /// </summary>
         private void AgregarCliente(TcpClient tcpClient)
         {
+            cantidadJugadoresConectados++;
+
             ClienteConectado cliente = new ClienteConectado
             {
                 tcpClient = tcpClient,
                 stream = tcpClient.GetStream(),
-                id = clientes.Count + 2 // El servidor es ID 1
+                id = cantidadJugadoresConectados
             };
 
             cliente.hilo = new Thread(() => EscucharCliente(cliente));
             cliente.hilo.Start();
             clientes.Add(cliente);
 
-            Debug.Log($"Cliente {cliente.id} conectado. Total: {clientes.Count + 1} jugadores");
+            Debug.Log($"Cliente {cliente.id} conectado. Total: {cantidadJugadoresConectados} jugadores");
         }
 
-        /// <summary>
-        /// Escucha mensajes de un cliente específico
-        /// </summary>
         private void EscucharCliente(ClienteConectado cliente)
         {
             byte[] buffer = new byte[4096];
@@ -123,19 +114,50 @@ namespace CrazyRisk.Red
                         string json = Encoding.UTF8.GetString(buffer, 0, bytes);
                         MensajeRed mensaje = JsonConvert.DeserializeObject<MensajeRed>(json);
 
-                        // Procesar conexión inicial
                         if (mensaje.tipo == "CONEXION" && string.IsNullOrEmpty(cliente.nombre))
                         {
                             ProcesarConexionInicial(cliente, mensaje);
+                            continue;
                         }
 
-                        // Asignar ID del remitente
                         mensaje.jugadorId = cliente.id;
 
-                        // Distribuir a otros clientes
-                        DistribuirMensaje(mensaje, cliente.id);
+                        switch (mensaje.tipo)
+                        {
+                            case "SOLICITAR_ESTADO":
+                                EnviarEstadoCompleto(cliente);
+                                break;
 
-                        // Notificar al servidor (hilo principal)
+                            case "ACCION_JUEGO":
+                                if (ValidarTurno(cliente.id) || EsPreparacion())
+                                {
+                                    DistribuirMensaje(mensaje, -1);
+                                }
+                                else
+                                {
+                                    EnviarRechazo(cliente, "No es tu turno");
+                                }
+                                break;
+
+                            case "FIN_TURNO":
+                                if (ValidarTurno(cliente.id))
+                                {
+                                    CambiarTurno();
+                                    MensajeRed mensajeTurno = new MensajeRed
+                                    {
+                                        tipo = "CAMBIO_TURNO",
+                                        jugadorId = jugadorEnTurno,
+                                        datos = jugadorEnTurno.ToString()
+                                    };
+                                    DistribuirMensaje(mensajeTurno, -1);
+                                }
+                                break;
+
+                            default:
+                                DistribuirMensaje(mensaje, cliente.id);
+                                break;
+                        }
+
                         UnityMainThreadDispatcher.Instance().Enqueue(() => {
                             OnMensajeRecibido?.Invoke(mensaje);
                         });
@@ -150,36 +172,49 @@ namespace CrazyRisk.Red
             RemoverCliente(cliente);
         }
 
-        /// <summary>
-        /// Procesa la conexión inicial de un cliente
-        /// </summary>
         private void ProcesarConexionInicial(ClienteConectado cliente, MensajeRed mensaje)
         {
             DatosJugador datos = JsonConvert.DeserializeObject<DatosJugador>(mensaje.datos);
             cliente.nombre = datos.nombre;
+
+            // Enviar confirmación con el ID asignado
+            DatosJugador confirmacion = new DatosJugador(cliente.nombre, cliente.id, "");
+            MensajeRed respuesta = new MensajeRed
+            {
+                tipo = "CONEXION_ACEPTADA",
+                datos = JsonConvert.SerializeObject(confirmacion),
+                jugadorId = 1
+            };
+            EnviarACliente(cliente, respuesta);
+
+            // NUEVO: Enviar nombres de todos los jugadores a todos
+            ActualizarNombresJugadores();
 
             UnityMainThreadDispatcher.Instance().Enqueue(() => {
                 OnClienteConectado?.Invoke(cliente.nombre);
             });
         }
 
-        /// <summary>
-        /// Distribuye un mensaje a todos los clientes excepto al remitente
-        /// </summary>
-        private void DistribuirMensaje(MensajeRed mensaje, int excluirId = -1)
+        private void ActualizarNombresJugadores()
         {
-            foreach (var cliente in clientes)
+            string[] nombres = new string[cantidadJugadoresConectados];
+            nombres[0] = PlayerPrefs.GetString("NombreJugador", "Servidor");
+
+            for (int i = 0; i < clientes.Count; i++)
             {
-                if (cliente.id != excluirId && cliente.conectado)
-                {
-                    EnviarACliente(cliente, mensaje);
-                }
+                nombres[i + 1] = clientes[i].nombre;
             }
+
+            MensajeRed mensaje = new MensajeRed
+            {
+                tipo = "ACTUALIZAR_NOMBRES",
+                datos = JsonConvert.SerializeObject(nombres),
+                jugadorId = 1
+            };
+
+            DistribuirMensaje(mensaje);
         }
 
-        /// <summary>
-        /// Envía un mensaje a un cliente específico
-        /// </summary>
         private void EnviarACliente(ClienteConectado cliente, MensajeRed mensaje)
         {
             try
@@ -194,17 +229,11 @@ namespace CrazyRisk.Red
             }
         }
 
-        /// <summary>
-        /// Envía un mensaje a todos los clientes conectados
-        /// </summary>
         public void EnviarATodos(MensajeRed mensaje)
         {
             DistribuirMensaje(mensaje);
         }
 
-        /// <summary>
-        /// Remueve un cliente de la lista
-        /// </summary>
         private void RemoverCliente(ClienteConectado cliente)
         {
             cliente.conectado = false;
@@ -225,9 +254,6 @@ namespace CrazyRisk.Red
             Debug.Log($"Cliente {cliente.id} desconectado. Quedan: {clientes.Count + 1} jugadores");
         }
 
-        /// <summary>
-        /// Detiene el servidor y desconecta todos los clientes
-        /// </summary>
         public void DetenerServidor()
         {
             activo = false;
@@ -245,10 +271,86 @@ namespace CrazyRisk.Red
             Debug.Log("Servidor detenido");
         }
 
-        // Métodos públicos de información
+        private bool ValidarTurno(int jugadorId)
+        {
+            return jugadorId == jugadorEnTurno;
+        }
+
+        private bool EsPreparacion()
+        {
+            return true;
+        }
+
+        private void CambiarTurno()
+        {
+            jugadorEnTurno++;
+            if (jugadorEnTurno > cantidadJugadoresConectados)
+            {
+                jugadorEnTurno = 1;
+            }
+            Debug.Log($"Turno cambiado a jugador {jugadorEnTurno}");
+        }
+
+        private void EnviarEstadoCompleto(ClienteConectado cliente)
+        {
+            MensajeRed solicitud = new MensajeRed
+            {
+                tipo = "SOLICITAR_ESTADO_GAMEMANAGER",
+                jugadorId = 1,
+                datos = cliente.id.ToString()
+            };
+
+            UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                OnMensajeRecibido?.Invoke(solicitud);
+            });
+        }
+
+        private void EnviarRechazo(ClienteConectado cliente, string razon)
+        {
+            MensajeRed rechazo = new MensajeRed
+            {
+                tipo = "ACCION_RECHAZADA",
+                datos = razon,
+                jugadorId = 1
+            };
+            EnviarACliente(cliente, rechazo);
+        }
+
+        private void DistribuirMensaje(MensajeRed mensaje, int excluirId = -1)
+        {
+            foreach (var cliente in clientes)
+            {
+                if (excluirId == -1 || cliente.id != excluirId)
+                {
+                    if (cliente.conectado)
+                    {
+                        EnviarACliente(cliente, mensaje);
+                    }
+                }
+            }
+        }
+
         public int GetCantidadJugadores() => clientes.Count + 1;
         public bool PuedeIniciarJuego() => clientes.Count >= 1;
         public bool ServidorActivo() => activo;
+        public int GetJugadorEnTurno() => jugadorEnTurno;
+        public int GetCantidadJugadoresConectados() => cantidadJugadoresConectados;
+
+        public void EnviarEstadoACliente(int clienteId, EstadoJuego estado)
+        {
+            ClienteConectado cliente = clientes.Find(c => c.id == clienteId);
+            if (cliente != null)
+            {
+                MensajeRed mensaje = new MensajeRed
+                {
+                    tipo = "ESTADO_COMPLETO",
+                    datos = JsonConvert.SerializeObject(estado),
+                    jugadorId = 1
+                };
+                EnviarACliente(cliente, mensaje);
+            }
+        }
+
         public List<string> GetNombresClientes()
         {
             List<string> nombres = new List<string>();

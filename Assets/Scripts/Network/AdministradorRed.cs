@@ -4,38 +4,26 @@ using Newtonsoft.Json;
 
 namespace CrazyRisk.Red
 {
-    /// <summary>
-    /// Coordina la comunicación de red y sincroniza el estado del juego
-    /// Se conecta automáticamente al GameManager
-    /// </summary>
     public class AdministradorRed : MonoBehaviour
     {
-        // Componentes de red
         private ServidorRisk servidor;
         private ClienteRisk cliente;
 
-        // Estado
         private bool esServidor;
         private int cantidadJugadores;
         private string nombreJugador;
 
-        // Referencias del juego
         private GameManager gameManager;
+        private int miJugadorId;
+        private int jugadorEnTurno = 1;
 
         void Start()
         {
             DontDestroyOnLoad(gameObject);
-
-            // Cargar configuración guardada del menú
             CargarConfiguracion();
-
-            // Buscar GameManager y conectar sistema de red
             StartCoroutine(BuscarGameManagerYConectar());
         }
 
-        /// <summary>
-        /// Carga la configuración de la partida desde PlayerPrefs
-        /// </summary>
         private void CargarConfiguracion()
         {
             esServidor = PlayerPrefs.GetInt("EsServidor", 1) == 1;
@@ -45,28 +33,20 @@ namespace CrazyRisk.Red
             Debug.Log($"AdministradorRed cargado: {nombreJugador} {(esServidor ? "(Servidor)" : "(Cliente)")} - {cantidadJugadores} jugadores");
         }
 
-        /// <summary>
-        /// Busca el GameManager y establece la conexión de red
-        /// </summary>
         private System.Collections.IEnumerator BuscarGameManagerYConectar()
         {
-            // Esperar hasta que el GameManager esté disponible
             while (gameManager == null)
             {
                 gameManager = FindObjectOfType<GameManager>();
                 yield return new UnityEngine.WaitForSeconds(0.1f);
             }
 
-            // Conectar sistema de red
             if (esServidor)
                 IniciarComoServidor();
             else
                 IniciarComoCliente();
         }
 
-        /// <summary>
-        /// Inicia el componente como servidor
-        /// </summary>
         private void IniciarComoServidor()
         {
             servidor = gameObject.AddComponent<ServidorRisk>();
@@ -76,20 +56,14 @@ namespace CrazyRisk.Red
 
             if (servidor.IniciarServidor(nombreJugador))
             {
-                Debug.Log("AdministradorRed funcionando como servidor");
-            }
-            else
-            {
-                Debug.LogError("Error al iniciar AdministradorRed como servidor");
+                miJugadorId = 1;
+                Debug.Log("AdministradorRed funcionando como servidor - ID: 1");
             }
         }
 
-        /// <summary>
-        /// Inicia el componente como cliente
-        /// </summary>
         private void IniciarComoCliente()
         {
-            string ipServidor = "127.0.0.1"; // Por defecto localhost
+            string ipServidor = PlayerPrefs.GetString("IP", "127.0.0.1");
 
             cliente = gameObject.AddComponent<ClienteRisk>();
             cliente.OnMensajeRecibido = ProcesarMensajeCliente;
@@ -108,125 +82,111 @@ namespace CrazyRisk.Red
 
         #region Procesamiento de Mensajes
 
-        /// <summary>
-        /// Procesa mensajes recibidos cuando actúa como servidor
-        /// </summary>
         private void ProcesarMensajeServidor(MensajeRed mensaje)
         {
             Debug.Log($"[Servidor] Procesando: {mensaje.tipo} de jugador {mensaje.jugadorId}");
 
             switch (mensaje.tipo)
             {
-                case "SELECCIONAR_TERRITORIO":
-                    ProcesarSeleccionTerritorio(mensaje);
+                case "ACCION_JUEGO":
+                    if (gameManager != null)
+                    {
+                        gameManager.EjecutarAccionDesdeRed(mensaje.datos);
+                    }
                     break;
 
-                case "COLOCAR_TROPAS":
-                    ProcesarColocarTropas(mensaje);
+                case "CAMBIO_TURNO":
+                    jugadorEnTurno = int.Parse(mensaje.datos);
+                    if (gameManager != null)
+                    {
+                        gameManager.ActualizarTurnoDesdeRed(jugadorEnTurno);
+                    }
                     break;
 
-                case "ATACAR":
-                    ProcesarAtaque(mensaje);
-                    break;
-
-                case "FINALIZAR_TURNO":
-                    ProcesarFinalizarTurno(mensaje);
-                    break;
-
-                case "SOLICITAR_ESTADO":
-                    EnviarEstadoCompleto();
+                case "SOLICITAR_ESTADO_GAMEMANAGER":
+                    if (gameManager != null)
+                    {
+                        EstadoJuego estado = gameManager.ObtenerEstadoActual();
+                        int clienteId = int.Parse(mensaje.datos);
+                        servidor.EnviarEstadoACliente(clienteId, estado);
+                    }
                     break;
             }
         }
 
-        /// <summary>
-        /// Procesa mensajes recibidos cuando actúa como cliente
-        /// </summary>
         private void ProcesarMensajeCliente(MensajeRed mensaje)
         {
-            Debug.Log($"[Cliente] Procesando: {mensaje.tipo} de jugador {mensaje.jugadorId}");
+            Debug.Log($"[Cliente] Procesando: {mensaje.tipo}");
 
             switch (mensaje.tipo)
             {
+                case "CONEXION_ACEPTADA":
+                    DatosJugador datosAceptacion = JsonConvert.DeserializeObject<DatosJugador>(mensaje.datos);
+                    miJugadorId = datosAceptacion.id;
+                    Debug.Log($"Me asignaron ID: {miJugadorId}");
+                    break;
+
+                case "ACTUALIZAR_NOMBRES":
+                    ActualizarNombresJugadores(mensaje.datos);
+                    break;
+
                 case "ESTADO_COMPLETO":
                     ActualizarEstadoLocal(mensaje);
                     break;
 
-                case "SELECCIONAR_TERRITORIO":
-                    ProcesarSeleccionTerritorio(mensaje);
+                case "ACCION_JUEGO":
+                    if (gameManager != null)
+                    {
+                        gameManager.EjecutarAccionDesdeRed(mensaje.datos);
+                    }
                     break;
 
-                case "COLOCAR_TROPAS":
-                    ProcesarColocarTropas(mensaje);
+                case "ACCION_RECHAZADA":
+                    Debug.LogWarning($"Acción rechazada: {mensaje.datos}");
                     break;
 
-                case "ATACAR":
-                    ProcesarAtaque(mensaje);
-                    break;
-
-                case "FINALIZAR_TURNO":
-                    ProcesarFinalizarTurno(mensaje);
+                case "CAMBIO_TURNO":
+                    jugadorEnTurno = int.Parse(mensaje.datos);
+                    if (gameManager != null)
+                    {
+                        gameManager.ActualizarTurnoDesdeRed(jugadorEnTurno);
+                    }
                     break;
             }
         }
-
-        /// <summary>
-        /// Procesa selección de territorio de otro jugador
-        /// </summary>
-        private void ProcesarSeleccionTerritorio(MensajeRed mensaje)
+        private void ActualizarNombresJugadores(string datosJson)
         {
-            Debug.Log($"Jugador {mensaje.jugadorId} seleccionó territorio: {mensaje.datos}");
-            // Aquí puedes agregar lógica visual para mostrar la selección
-        }
+            string[] nombres = JsonConvert.DeserializeObject<string[]>(datosJson);
 
-        /// <summary>
-        /// Procesa colocación de tropas de otro jugador
-        /// </summary>
-        private void ProcesarColocarTropas(MensajeRed mensaje)
-        {
-            Debug.Log($"Jugador {mensaje.jugadorId} colocó tropas: {mensaje.datos}");
-            // Actualizar el estado visual del territorio
+            if (gameManager != null)
+            {
+                // Actualizar nombres en el GameManager
+                if (nombres.Length > 0)
+                    gameManager.GetJugador1().setNombre(nombres[0]);
+                if (nombres.Length > 1)
+                    gameManager.GetJugador2().setNombre(nombres[1]);
+                if (nombres.Length > 2 && gameManager.GetJugador3() != null)
+                    gameManager.GetJugador3().setNombre(nombres[2]);
+            }
         }
-
-        /// <summary>
-        /// Procesa ataque de otro jugador
-        /// </summary>
-        private void ProcesarAtaque(MensajeRed mensaje)
-        {
-            Debug.Log($"Jugador {mensaje.jugadorId} realizó ataque: {mensaje.datos}");
-            // Mostrar resultado del ataque
-        }
-
-        /// <summary>
-        /// Procesa finalización de turno
-        /// </summary>
-        private void ProcesarFinalizarTurno(MensajeRed mensaje)
-        {
-            Debug.Log($"Jugador {mensaje.jugadorId} finalizó su turno");
-            // Cambiar al siguiente jugador
-        }
-
-        /// <summary>
-        /// Actualiza el estado local del juego (solo cliente)
-        /// </summary>
         private void ActualizarEstadoLocal(MensajeRed mensaje)
         {
             try
             {
                 EstadoJuego estado = JsonConvert.DeserializeObject<EstadoJuego>(mensaje.datos);
 
-                if (gameManager != null && estado.territoriosPropietarios != null)
+                if (gameManager != null)
                 {
-                    var territorios = gameManager.GetTerritorios();
+                    gameManager.ActualizarDesdeEstadoCompleto(estado);
+                    jugadorEnTurno = estado.turnoActual;
 
-                    for (int i = 0; i < territorios.getSize() && i < estado.territoriosPropietarios.Length; i++)
+                    if (miJugadorId == 0 && estado.cantidadJugadores > 0)
                     {
-                        territorios[i].PropietarioId = estado.territoriosPropietarios[i];
-                        territorios[i].CantidadTropas = estado.territoriosTropas[i];
+                        miJugadorId = estado.cantidadJugadores;
                     }
-
-                    Debug.Log("Estado del juego actualizado desde el servidor");
                 }
+
+                Debug.Log($"Estado del juego actualizado - Turno: {jugadorEnTurno}, Mi ID: {miJugadorId}");
             }
             catch (System.Exception e)
             {
@@ -236,11 +196,57 @@ namespace CrazyRisk.Red
 
         #endregion
 
+        public void EnviarAccionJuego(AccionJuego accion)
+        {
+            accion.jugadorId = miJugadorId;
+            string datosJson = JsonConvert.SerializeObject(accion);
+
+            MensajeRed mensaje = new MensajeRed
+            {
+                tipo = "ACCION_JUEGO",
+                datos = datosJson,
+                jugadorId = miJugadorId
+            };
+
+            if (esServidor && servidor != null)
+            {
+                servidor.EnviarATodos(mensaje);
+                if (gameManager != null)
+                {
+                    gameManager.EjecutarAccionDesdeRed(datosJson);
+                }
+            }
+            else if (!esServidor && cliente != null)
+            {
+                cliente.EnviarMensaje(mensaje);
+            }
+        }
+
+        public void NotificarFinTurno()
+        {
+            MensajeRed mensaje = new MensajeRed
+            {
+                tipo = "FIN_TURNO",
+                datos = "",
+                jugadorId = miJugadorId
+            };
+
+            if (esServidor && servidor != null)
+            {
+                servidor.EnviarATodos(mensaje);
+            }
+            else if (cliente != null)
+            {
+                cliente.EnviarMensaje(mensaje);
+            }
+        }
+
+        public int GetMiJugadorId() => miJugadorId;
+        public int GetJugadorEnTurno() => jugadorEnTurno;
+        public bool EsMiTurno() => miJugadorId == jugadorEnTurno;
+
         #region Envío de Mensajes
 
-        /// <summary>
-        /// Envía un mensaje a través de la red
-        /// </summary>
         public void EnviarMensaje(string tipo, string datos)
         {
             MensajeRed mensaje = new MensajeRed
@@ -260,55 +266,40 @@ namespace CrazyRisk.Red
             }
         }
 
-        /// <summary>
-        /// Notifica selección de territorio
-        /// </summary>
         public void NotificarSeleccionTerritorio(string nombreTerritorio)
         {
             EnviarMensaje("SELECCIONAR_TERRITORIO", nombreTerritorio);
         }
 
-        /// <summary>
-        /// Notifica colocación de tropas
-        /// </summary>
         public void NotificarColocarTropas(string nombreTerritorio, int cantidad)
         {
-            string datos = JsonConvert.SerializeObject(new { territorio = nombreTerritorio, tropas = cantidad });
-            EnviarMensaje("COLOCAR_TROPAS", datos);
+            string datosMsg = JsonConvert.SerializeObject(new { territorio = nombreTerritorio, tropas = cantidad });
+            EnviarMensaje("COLOCAR_TROPAS", datosMsg);
         }
 
-        /// <summary>
-        /// Notifica ataque realizado
-        /// </summary>
         public void NotificarAtaque(string territorioAtacante, string territorioDefensor, string resultado)
         {
-            string datos = JsonConvert.SerializeObject(new
+            string datosMsg = JsonConvert.SerializeObject(new
             {
                 atacante = territorioAtacante,
                 defensor = territorioDefensor,
                 resultado = resultado
             });
-            EnviarMensaje("ATACAR", datos);
+            EnviarMensaje("ATACAR", datosMsg);
         }
 
-        /// <summary>
-        /// Notifica finalización de turno
-        /// </summary>
         public void NotificarFinalizarTurno()
         {
             EnviarMensaje("FINALIZAR_TURNO", "Turno finalizado");
         }
 
-        /// <summary>
-        /// Envía el estado completo del juego (solo servidor)
-        /// </summary>
         public void EnviarEstadoCompleto()
         {
             if (!esServidor || gameManager == null) return;
 
             try
             {
-                EstadoJuego estado = ObtenerEstadoActual();
+                EstadoJuego estado = gameManager.ObtenerEstadoActual();
                 string datosEstado = JsonConvert.SerializeObject(estado);
                 EnviarMensaje("ESTADO_COMPLETO", datosEstado);
             }
@@ -318,33 +309,6 @@ namespace CrazyRisk.Red
             }
         }
 
-        /// <summary>
-        /// Obtiene el estado actual del juego
-        /// </summary>
-        private EstadoJuego ObtenerEstadoActual()
-        {
-            EstadoJuego estado = new EstadoJuego();
-
-            var territorios = gameManager.GetTerritorios();
-            if (territorios != null)
-            {
-                estado.territoriosPropietarios = new int[territorios.getSize()];
-                estado.territoriosTropas = new int[territorios.getSize()];
-
-                for (int i = 0; i < territorios.getSize(); i++)
-                {
-                    estado.territoriosPropietarios[i] = territorios[i].PropietarioId;
-                    estado.territoriosTropas[i] = territorios[i].CantidadTropas;
-                }
-
-                estado.turnoActual = 1; // Puedes obtener esto del GameManager
-                estado.cantidadJugadores = cantidadJugadores;
-                estado.nombresJugadores = new string[] { nombreJugador };
-            }
-
-            return estado;
-        }
-
         #endregion
 
         #region Eventos de Conexión
@@ -352,7 +316,6 @@ namespace CrazyRisk.Red
         private void OnClienteConectadoServidor(string nombreCliente)
         {
             Debug.Log($"Cliente conectado al administrador: {nombreCliente}");
-            // Enviar estado actual al nuevo cliente
             EnviarEstadoCompleto();
         }
 
@@ -364,7 +327,6 @@ namespace CrazyRisk.Red
         private void OnConectadoCliente()
         {
             Debug.Log("Administrador cliente conectado exitosamente");
-            // Solicitar estado actual al servidor
             EnviarMensaje("SOLICITAR_ESTADO", "");
         }
 
