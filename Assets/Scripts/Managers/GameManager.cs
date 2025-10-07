@@ -456,12 +456,30 @@ namespace CrazyRisk.Managers
                 panelVictoria.SetActive(true);
 
                 if (textoGanador != null)
-                    textoGanador.text = $"{ganador.getNombre()} ha conquistado el mundo!";
+                {
+                    textoGanador.text = $"Ha ganado {ganador.getNombre()}\n¡Es toda una máquina!";
+                }
 
-                Time.timeScale = 0;
+                DesactivarControlesJuego();
             }
 
             Debug.Log($"VICTORIA! {ganador.getNombre()} ha ganado la partida");
+        }
+
+        private void DesactivarControlesJuego()
+        {
+            foreach (TerritorioUI territorio in territoriosUI)
+            {
+                if (territorio != null)
+                {
+                    territorio.enabled = false; 
+                }
+            }
+
+            if (manejadorTurnos != null)
+            {
+                manejadorTurnos.enabled = false;
+            }
         }
 
         private void BuscarTerritoriosEnEscena()

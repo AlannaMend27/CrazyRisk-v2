@@ -8878,6 +8878,54 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 624478828}
   m_CullTransparentMesh: 1
+--- !u!1 &627256117
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 627256118}
+  - component: {fileID: 627256119}
+  m_Layer: 5
+  m_Name: ControladorVictoria
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &627256118
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 627256117}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1619175748}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &627256119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 627256117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a088c024f51d28a46b06a55e08794ff6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &629516216
 GameObject:
   m_ObjectHideFlags: 0
@@ -8926,7 +8974,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d505ca1fef03c7649aa78a28aeb9ce54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ataque: {fileID: 8300000, guid: 16fd03f3666e17b4c905416f5345a637, type: 3}
   conquista: {fileID: 8300000, guid: d06916b095a42594fb473aabe6580863, type: 3}
   colocarTropa: {fileID: 8300000, guid: 738e03604f001d84fa53c406c5881cbc, type: 3}
   conectadoOTurno: {fileID: 8300000, guid: b2c9d0a5cf1a67743a18b05fdcf0ffc5, type: 3}
@@ -11914,9 +11961,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1619175752}
-        m_TargetAssemblyTypeName: UIController, Assembly-CSharp
-        m_MethodName: OnAtacar
+      - m_Target: {fileID: 627256119}
+        m_TargetAssemblyTypeName: CrazyRisk.Managers.ControladorVictoria, Assembly-CSharp
+        m_MethodName: VolverAlMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -18547,8 +18594,8 @@ MonoBehaviour:
   colorJugador2: Morado
   manejadorTurnos: {fileID: 0}
   textoInformacion: {fileID: 0}
-  panelVictoria: {fileID: 0}
-  textoGanador: {fileID: 0}
+  panelVictoria: {fileID: 293077187}
+  textoGanador: {fileID: 624478830}
   PanelDatos: {fileID: 1876738163}
   DatosFase: {fileID: 1898262895}
 --- !u!4 &1379785426
@@ -20193,18 +20240,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1619175752}
-        m_TargetAssemblyTypeName: UIController, Assembly-CSharp
-        m_MethodName: OnContinuar
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
       - m_Target: {fileID: 629516218}
         m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
         m_MethodName: ReproducirClick
@@ -23096,8 +23131,8 @@ RectTransform:
   - {fileID: 208555923}
   - {fileID: 878538235}
   - {fileID: 706805089}
-  - {fileID: 1751579250}
   - {fileID: 1972524609}
+  - {fileID: 1751579250}
   - {fileID: 1121655050}
   - {fileID: 749664833}
   - {fileID: 139455483}
@@ -23111,6 +23146,7 @@ RectTransform:
   - {fileID: 818960560}
   - {fileID: 293077188}
   - {fileID: 629516217}
+  - {fileID: 627256118}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -23179,7 +23215,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_TargetDisplay: 0
 --- !u!114 &1619175752
 MonoBehaviour:
@@ -24234,18 +24270,6 @@ MonoBehaviour:
       - m_Target: {fileID: 629516218}
         m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
         m_MethodName: ReproducirClick
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 1619175752}
-        m_TargetAssemblyTypeName: UIController, Assembly-CSharp
-        m_MethodName: OnContinuar
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -29914,6 +29938,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 1403104331}
   - {fileID: 1379785426}
+  - {fileID: 1619175748}
   - {fileID: 1922300705}
   - {fileID: 1962278789}
   - {fileID: 1384659031}
@@ -29945,7 +29970,6 @@ SceneRoots:
   - {fileID: 596755463}
   - {fileID: 370803219}
   - {fileID: 1938799995}
-  - {fileID: 1619175748}
   - {fileID: 1809706691}
   - {fileID: 1831539375}
   - {fileID: 301896138}

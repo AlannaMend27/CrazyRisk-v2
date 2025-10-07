@@ -484,6 +484,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 2115041677}
+        m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
+        m_MethodName: ReproducirClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &39935309
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1888,6 +1900,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 2115041677}
+        m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
+        m_MethodName: ReproducirClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &259954122
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1944,7 +1968,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &331914823
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2368,6 +2392,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 2115041677}
+        m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
+        m_MethodName: ReproducirClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &360202849
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2760,6 +2796,18 @@ MonoBehaviour:
       - m_Target: {fileID: 1990007684}
         m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
         m_MethodName: CrearPartida
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 2115041677}
+        m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
+        m_MethodName: ReproducirClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3231,7 +3279,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &672284066
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3830,6 +3878,18 @@ MonoBehaviour:
       - m_Target: {fileID: 331914826}
         m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
         m_MethodName: MostrarMenuPrincipal
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 2115041677}
+        m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
+        m_MethodName: ReproducirClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4578,6 +4638,7 @@ RectTransform:
   - {fileID: 1990007681}
   - {fileID: 160232188}
   - {fileID: 672284066}
+  - {fileID: 2115041676}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4862,6 +4923,18 @@ MonoBehaviour:
       - m_Target: {fileID: 1213518642}
         m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
         m_MethodName: MostrarCrearPartida
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 2115041677}
+        m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
+        m_MethodName: ReproducirClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -6374,6 +6447,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 2115041677}
+        m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
+        m_MethodName: ReproducirClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1738895253
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6902,6 +6987,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 2115041677}
+        m_TargetAssemblyTypeName: CrazyRisk.Managers.ManagerSonidos, Assembly-CSharp
+        m_MethodName: ReproducirClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1861569116
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7249,6 +7346,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2067397275}
   m_CullTransparentMesh: 1
+--- !u!1 &2115041675
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2115041676}
+  - component: {fileID: 2115041677}
+  m_Layer: 5
+  m_Name: ManagerSonidos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2115041676
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2115041675}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1213518640}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2115041677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2115041675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d505ca1fef03c7649aa78a28aeb9ce54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  conquista: {fileID: 8300000, guid: d06916b095a42594fb473aabe6580863, type: 3}
+  colocarTropa: {fileID: 8300000, guid: 738e03604f001d84fa53c406c5881cbc, type: 3}
+  conectadoOTurno: {fileID: 8300000, guid: b2c9d0a5cf1a67743a18b05fdcf0ffc5, type: 3}
+  dados: {fileID: 8300000, guid: 6a28abb495202594f8419af5c63b7e0d, type: 3}
+  victoria: {fileID: 8300000, guid: 62e0012ca3e29ba419f61a2c175edc67, type: 3}
+  click: {fileID: 8300000, guid: 2c33a0116a8389e4ea65429c86cce019, type: 3}
+  error: {fileID: 8300000, guid: 1991949e8a3ccc3499401334df73ee45, type: 3}
+  volumenEfectos: 0.7
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -82,6 +82,7 @@
     <Compile Include="Assets\Scripts\LogicaJuego\ManejadorPlaneacion.cs" />
     <Compile Include="Assets\Scripts\Network\AdministradorRed.cs" />
     <Compile Include="Assets\Scripts\LogicaJuego\ManejadorRefuerzos.cs" />
+    <Compile Include="Assets\Scripts\LogicaJuego\ControladorVictoria.cs" />
     <Compile Include="Assets\Scripts\Modelos\Jugador.cs" />
     <Compile Include="Assets\Scripts\LogicaJuego\DetectorVictoria.cs" />
     <Compile Include="Assets\Scripts\Managers\GameManager.cs" />
