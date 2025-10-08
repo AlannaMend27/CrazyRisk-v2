@@ -130,20 +130,42 @@ namespace CrazyRisk.Managers
                 return;
             }
 
+            // Guardar estados ANTES del ataque
+            var territorioAtacanteLogico = territorioAtacante.GetTerritorioLogico();
+            var territorioDefensorLogico = territorioDefensor.GetTerritorioLogico();
+
+            int tropasAtacantesAntes = territorioAtacanteLogico.CantidadTropas;
+            int tropasDefensorAntes = territorioDefensorLogico.CantidadTropas;
+
+            Debug.Log($"=== ANTES DEL ATAQUE ===");
+            Debug.Log($"Atacante {territorioAtacanteLogico.Nombre}: {tropasAtacantesAntes} tropas");
+            Debug.Log($"Defensor {territorioDefensorLogico.Nombre}: {tropasDefensorAntes} tropas");
+
+            // Ejecutar ataque
             ManejadorAtaques.ResultadoAtaque resultado = manejadorAtaques.EjecutarAtaqueConDados(dadosAtacante, dadosDefensor);
 
-            if (resultado != null && visualizadorDados != null)
+            if (resultado != null)
             {
-                visualizadorDados.MostrarCombateConDados(
-                    nombreAtacante,
-                    nombreDefensor,
-                    dadosAtacante,
-                    dadosDefensor
-                );
+                Debug.Log($"=== DESPUÉS DEL ATAQUE ===");
+                Debug.Log($"Atacante {territorioAtacanteLogico.Nombre}: {territorioAtacanteLogico.CantidadTropas} tropas");
+                Debug.Log($"Defensor {territorioDefensorLogico.Nombre}: {territorioDefensorLogico.CantidadTropas} tropas");
 
+                // Mostrar dados PRIMERO (antes de actualizar UI)
+                if (visualizadorDados != null)
+                {
+                    visualizadorDados.MostrarCombateConDados(
+                        nombreAtacante,
+                        nombreDefensor,
+                        dadosAtacante,
+                        dadosDefensor
+                    );
+                }
+
+                // AHORA SÍ actualizar la interfaz UNA SOLA VEZ
                 territorioAtacante.ActualizarInterfaz();
                 territorioDefensor.ActualizarInterfaz();
 
+                // Manejar conquista
                 if (resultado.conquistado)
                 {
                     if (manejadorTurnos == null)
@@ -160,9 +182,13 @@ namespace CrazyRisk.Managers
                             : new Color(0.5f, 0f, 0.8f);
 
                         territorioDefensor.CambiarColor(colorJugador);
+
+                        // Actualizar de nuevo después del cambio de color
+                        territorioDefensor.ActualizarInterfaz();
                     }
                 }
 
+                // Limpiar selecciones
                 TerritorioUI.LimpiarSeleccionesEstaticas();
                 manejadorAtaques.LimpiarSeleccion();
             }

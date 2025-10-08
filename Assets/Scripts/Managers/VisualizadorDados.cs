@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using CrazyRisk.LogicaJuego;
@@ -39,12 +39,37 @@ namespace CrazyRisk.Managers
             if (botonContinuar != null)
                 botonContinuar.onClick.AddListener(CerrarPanel);
         }
+
+        // Nuevo m√©todo para mostrar resultados reales del combate
+        public void MostrarCombateConResultados(
+            string nombreAtacante,
+            string nombreDefensor,
+            int[] resultadosAtacante,
+            int[] resultadosDefensor,
+            int bajasAtacante,
+            int bajasDefensor)
+        {
+            if (panelCombate != null)
+            {
+                panelCombate.SetActive(true);
+                panelCombate.transform.SetAsLastSibling();
+            }
+
+            if (textoAtaque != null)
+                textoAtaque.text = nombreAtacante + " ataca a " + nombreDefensor;
+
+            MostrarDadosAtacante(resultadosAtacante);
+            MostrarDadosDefensor(resultadosDefensor);
+
+            if (textoResultado != null)
+                textoResultado.text = $"Bajas - Atacante: {bajasAtacante}, Defensor: {bajasDefensor}";
+        }
+
         public void MostrarCombateConDados(string nombreAtacante, string nombreDefensor, int dadosAtacante, int dadosDefensor)
         {
             if (manejadorCombate == null)
                 manejadorCombate = new ManejadorCombate();
 
-            // Lanzar dados con las cantidades especificadas
             int[] resultadosAtacante = manejadorCombate.LanzarDadosAtacante(dadosAtacante);
             int[] resultadosDefensor = manejadorCombate.LanzarDadosDefensor(dadosDefensor);
 
@@ -57,14 +82,13 @@ namespace CrazyRisk.Managers
             if (textoAtaque != null)
                 textoAtaque.text = nombreAtacante + " ataca a " + nombreDefensor;
 
-            // Los dados no usados se ocultar·n autom·ticamente
             MostrarDadosAtacante(resultadosAtacante);
             MostrarDadosDefensor(resultadosDefensor);
 
             string resultado = manejadorCombate.ResolverCombateIndividual(resultadosAtacante, resultadosDefensor);
             if (textoResultado != null)
                 textoResultado.text = ExtraerResultadoSimple(resultado);
-        } 
+        }
 
         public void MostrarCombate(string nombreAtacante, string nombreDefensor, int tropasAtacante, int tropasDefensor)
         {

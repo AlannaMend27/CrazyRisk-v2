@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using CrazyRisk.Estructuras;
 using CrazyRisk.Modelos;
 using CrazyRisk.Managers;
@@ -197,26 +198,29 @@ namespace CrazyRisk.LogicaJuego
                 }
             }
 
-            Debug.Log($"Ataque ejecutado: {resultado.ToString()}");
-
-            // NUEVO: Limpiar selecciones después del ataque para permitir nuevos ataques
-            LimpiarSeleccion();
-
             return resultado;
         }
 
         private void CalcularBajas(int[] dadosAtacante, int[] dadosDefensor, ResultadoAtaque resultado)
         {
-            int comparaciones = Mathf.Min(dadosAtacante.Length, dadosDefensor.Length);
+            // Ordenar los dados de mayor a menor
+            Array.Sort(dadosAtacante);
+            Array.Reverse(dadosAtacante);
+            Array.Sort(dadosDefensor);
+            Array.Reverse(dadosDefensor);
+
+            int comparaciones = Math.Min(dadosAtacante.Length, dadosDefensor.Length);
 
             for (int i = 0; i < comparaciones; i++)
             {
                 if (dadosAtacante[i] > dadosDefensor[i])
                 {
+                    // Defensor pierde una tropa
                     resultado.tropasPerdidasDefensor++;
                 }
                 else
                 {
+                    // Atacante pierde una tropa
                     resultado.tropasPerdidasAtacante++;
                 }
             }
