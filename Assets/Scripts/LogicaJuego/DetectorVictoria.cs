@@ -4,33 +4,46 @@ using CrazyRisk.Modelos;
 
 namespace CrazyRisk.LogicaJuego
 {
+    /// <summary>
+    /// Proporciona m茅todos para verificar condiciones de victoria, derrota y estado de la partida.
+    /// </summary>
     public class DetectorVictoria
     {
         private const int TOTAL_TERRITORIOS = 42;
 
+        /// <summary>
+        /// Verifica si el jugador ha cumplido la condici贸n de victoria.
+        /// </summary>
         public bool VerificarVictoria(Jugador jugador)
         {
             return jugador.HaGanado(TOTAL_TERRITORIOS);
         }
 
+        /// <summary>
+        /// Verifica si el jugador ha sido derrotado.
+        /// </summary>
         public bool VerificarDerrota(Jugador jugador)
         {
             return jugador.HaPerdido();
         }
 
+        /// <summary>
+        /// Busca y retorna el jugador ganador, si existe, ignorando jugadores neutrales.
+        /// </summary>
         public Jugador BuscarGanador(Lista<Jugador> jugadores)
         {
             for (int i = 0; i < jugadores.getSize(); i++)
             {
                 Jugador jugador = jugadores.Obtener(i);
 
-                // NUEVO: El neutral no puede ganar
+                // no permite que el jugador neutral gane
                 if (jugador.getEsNeutral())
                     continue;
 
+                //verifica el jugador que ha ganado
                 if (VerificarVictoria(jugador))
                 {
-                    Debug.Log($"jugador.getNombre()} ha ganado la partida!");
+                    Debug.Log($"锟絳jugador.getNombre()} ha ganado la partida!");
                     return jugador;
                 }
             }
@@ -38,6 +51,9 @@ namespace CrazyRisk.LogicaJuego
             return null;
         }
 
+        /// <summary>
+        /// Cuenta la cantidad de jugadores activos que no han sido derrotados, excluyendo neutrales.
+        /// </summary>
         public int ContarJugadoresActivos(Lista<Jugador> jugadores)
         {
             int activos = 0;
@@ -46,7 +62,7 @@ namespace CrazyRisk.LogicaJuego
             {
                 Jugador jugador = jugadores.Obtener(i);
 
-                // El neutral no cuenta como jugador activo para condici髇 de victoria
+                // se excluye al neutral
                 if (jugador.getEsNeutral())
                     continue;
 
@@ -59,6 +75,9 @@ namespace CrazyRisk.LogicaJuego
             return activos;
         }
 
+        /// <summary>
+        /// Verifica el estado actual de la partida y retorna informaci贸n sobre el ganador y jugadores activos.
+        /// </summary>
         public EstadoPartida VerificarEstadoPartida(Lista<Jugador> jugadores)
         {
             Jugador ganador = BuscarGanador(jugadores);
@@ -84,17 +103,23 @@ namespace CrazyRisk.LogicaJuego
         }
     }
 
+    /// <summary>
+    /// Representa el estado de la partida, incluyendo si termin贸, el ganador y la cantidad de jugadores activos.
+    /// </summary>
     public class EstadoPartida
     {
         public bool juegoTerminado;
         public Jugador ganador;
         public int jugadoresActivos;
 
+        /// <summary>
+        /// Devuelve una representaci贸n en texto del estado de la partida.
+        /// </summary>
         public override string ToString()
         {
             if (juegoTerminado && ganador != null)
             {
-                return $"artida terminada! Ganador: {ganador.getNombre()}";
+                return $"锟絇artida terminada! Ganador: {ganador.getNombre()}";
             }
 
             return $"Partida en curso - Jugadores activos: {jugadoresActivos}";

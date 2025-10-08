@@ -4,12 +4,18 @@ using CrazyRisk.Modelos;
 
 namespace CrazyRisk.LogicaJuego
 {
+    /// <summary>
+    /// Gestiona la l√≥gica de refuerzos, intercambio de tarjetas y c√°lculo de bonificaciones en el juego.
+    /// </summary>
     public class ManejadorRefuerzos
     {
         private int cantidadTarjetas;
-        private static int contadorGlobalIntercambios = 0;
+        private static int contadorGlobalIntercambios = 0; // Lleva la cuenta global de intercambios de tarjetas
         private Random random;
 
+        /// <summary>
+        /// Constructor: inicializa la cantidad de tarjetas y el generador de n√∫meros aleatorios.
+        /// </summary>
         public ManejadorRefuerzos()
         {
             cantidadTarjetas = 0;
@@ -17,7 +23,7 @@ namespace CrazyRisk.LogicaJuego
         }
 
         /// <summary>
-        /// Calcular la cantidad de refuerzos que recibira el jugador
+        /// Calcula la cantidad de refuerzos que recibir√° el jugador seg√∫n sus territorios y continentes controlados.
         /// </summary>
         public int CalcularRefuerzos(int CantidadTerritorios, Lista<Territorio> territoriosJugador, Lista<Continente> Continentes)
         {
@@ -35,7 +41,7 @@ namespace CrazyRisk.LogicaJuego
 
             int Tropas = (CantidadTerritorios / 3) + bonusTotal;
 
-            // MÌnimo 3 tropas por turno seg˙n las reglas de Risk
+            // M√≠nimo 3 tropas por turno seg√∫n las reglas de Risk
             if (Tropas < 3)
                 Tropas = 3;
 
@@ -43,8 +49,7 @@ namespace CrazyRisk.LogicaJuego
         }
 
         /// <summary>
-        /// Calcula el valor de Fibonacci para el intercambio de tarjetas
-        /// Serie: 2, 3, 5, 8, 13, 21, 34, 55...
+        /// Calcula el valor de Fibonacci para determinar la cantidad de refuerzos al intercambiar tarjetas.
         /// </summary>
         public int Fibonacci()
         {
@@ -66,7 +71,7 @@ namespace CrazyRisk.LogicaJuego
         }
 
         /// <summary>
-        /// Verifica si un trÌo de tarjetas es v·lido para intercambio
+        /// Verifica si un tr√≠o de tarjetas es v√°lido para intercambio.
         /// </summary>
         public bool EsTrioValido(Tarjeta t1, Tarjeta t2, Tarjeta t3)
         {
@@ -84,7 +89,7 @@ namespace CrazyRisk.LogicaJuego
         }
 
         /// <summary>
-        /// Elige un territorio aleatorio de una lista (Para colocar los refuerzos del jugador neutral)
+        /// Elige un territorio aleatorio de una lista.
         /// </summary>
         public Territorio ElegirTerritorioAleatorio(Lista<Territorio> territorios)
         {
@@ -95,15 +100,14 @@ namespace CrazyRisk.LogicaJuego
             return territorios.Obtener(indiceAleatorio);
         }
 
-
         /// <summary>
-        /// Intercambia un trÌo de tarjetas por refuerzos
+        /// Intercambia un tr√≠o de tarjetas por refuerzos.
         /// </summary>
         public int IntercambiarTarjetas(Tarjeta t1, Tarjeta t2, Tarjeta t3)
         {
             if (!EsTrioValido(t1, t2, t3))
             {
-                UnityEngine.Debug.LogWarning("TrÌo de tarjetas inv·lido");
+                UnityEngine.Debug.LogWarning("Tr√≠o de tarjetas inv√°lido");
                 return 0;
             }
 
@@ -120,21 +124,33 @@ namespace CrazyRisk.LogicaJuego
             return refuerzos;
         }
 
+        /// <summary>
+        /// Incrementa el contador global de intercambios de tarjetas.
+        /// </summary>
         public void IncrementarContadorGlobal()
         {
             contadorGlobalIntercambios++;
         }
 
+        /// <summary>
+        /// Devuelve el valor actual del contador global de intercambios.
+        /// </summary>
         public int GetContadorGlobal()
         {
             return contadorGlobalIntercambios;
         }
 
+        /// <summary>
+        /// Establece la cantidad de tarjetas que posee el jugador.
+        /// </summary>
         public void SetCantidadTarjetas(int cantidad)
         {
             cantidadTarjetas = cantidad;
         }
 
+        /// <summary>
+        /// Devuelve la cantidad de tarjetas que posee el jugador.
+        /// </summary>
         public int GetCantidadTarjetas()
         {
             return cantidadTarjetas;

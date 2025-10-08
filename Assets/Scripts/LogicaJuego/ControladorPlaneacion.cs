@@ -8,7 +8,7 @@ namespace CrazyRisk.Managers
 {
     public class ControladorPlaneacion : MonoBehaviour
     {
-        [Header("UI Planeaci�n")]
+        [Header("UI Planeaci�n")]
         [SerializeField] private GameObject panelMovimientoTropas;
         [SerializeField] private TextMeshProUGUI textoInfo;
         [SerializeField] private Slider sliderTropas;
@@ -22,6 +22,9 @@ namespace CrazyRisk.Managers
         private TerritorioUI territorioOrigenUI;
         private TerritorioUI territorioDestinoUI;
 
+        /// <summary>
+        /// Inicializa referencias, listeners y configura el panel de movimiento de tropas al iniciar el componente
+        /// </summary>
         void Start()
         {
             gameManager = FindObjectOfType<GameManager>();
@@ -46,6 +49,9 @@ namespace CrazyRisk.Managers
                 sliderTropas.onValueChanged.AddListener(ActualizarTextoSlider);
         }
 
+        /// <summary>
+        /// Selecciona el territorio de origen para el movimiento de tropas si es válido
+        /// </summary>
         public void SeleccionarOrigen(TerritorioUI territorioUI)
         {
             if (manejadorTurnos == null)
@@ -53,7 +59,7 @@ namespace CrazyRisk.Managers
 
             if (manejadorTurnos == null || !manejadorTurnos.PuedePlanear())
             {
-                Debug.LogWarning("No est�s en fase de planeaci�n");
+                Debug.LogWarning("No est�s en fase de planeaci�n");
                 return;
             }
 
@@ -67,6 +73,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Selecciona el territorio de destino para el movimiento de tropas si es válido y muestra el panel de movimiento
+        /// </summary>
         public void SeleccionarDestino(TerritorioUI territorioUI)
         {
             if (manejadorTurnos == null)
@@ -88,6 +97,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Muestra el panel para mover tropas y configura el slider y la información
+        /// </summary>
         private void MostrarPanelMovimiento()
         {
             int tropas = manejadorPlaneacion.TropasDisponiblesParaMover();
@@ -108,12 +120,18 @@ namespace CrazyRisk.Managers
             ActualizarTextoSlider(1);
         }
 
+        /// <summary>
+        /// Actualiza el texto que muestra la cantidad de tropas seleccionadas en el slider
+        /// </summary>
         private void ActualizarTextoSlider(float valor)
         {
             if (textoSlider != null)
                 textoSlider.text = $"{(int)valor} tropa(s)";
         }
 
+        /// <summary>
+        /// Confirma el movimiento de tropas, actualiza las interfaces y limpia las selecciones
+        /// </summary>
         private void ConfirmarMovimiento()
         {
             int cantidad = (int)sliderTropas.value;
@@ -133,6 +151,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Cancela el movimiento de tropas y limpia las selecciones.
+        /// </summary>
         private void CancelarMovimiento()
         {
             TerritorioUI.LimpiarSeleccionesEstaticas();
@@ -142,6 +163,9 @@ namespace CrazyRisk.Managers
                 panelMovimientoTropas.SetActive(false);
         }
 
+        /// <summary>
+        /// Limpia las referencias a los territorios seleccionados y la selección en el manejador de planeación.
+        /// </summary>
         private void LimpiarSeleccion()
         {
             territorioOrigenUI = null;
@@ -149,6 +173,9 @@ namespace CrazyRisk.Managers
             manejadorPlaneacion.LimpiarSeleccion();
         }
 
+        /// <summary>
+        /// Devuelve la instancia del manejador de planeación.
+        /// </summary>
         public ManejadorPlaneacion GetManejador() => manejadorPlaneacion;
     }
 }

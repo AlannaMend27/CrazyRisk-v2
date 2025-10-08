@@ -8,6 +8,7 @@ namespace CrazyRisk.Managers
 {
     public class ControladorCombate : MonoBehaviour
     {
+
         [Header("Paneles")]
         [SerializeField] private GameObject panelPreguntaAtacar;
         [SerializeField] private GameObject panelPreguntaDefender;
@@ -22,6 +23,7 @@ namespace CrazyRisk.Managers
         [SerializeField] private TMP_Dropdown dropdownDefensor;
         [SerializeField] private Button botonContinuarDefensor;
 
+        //Propiedades 
         private VisualizadorDados visualizadorDados;
         private ManejadorAtaques manejadorAtaques;
         private ManejadorTurnos manejadorTurnos;
@@ -34,6 +36,9 @@ namespace CrazyRisk.Managers
         private int tropasAtacante;
         private int tropasDefensor;
 
+        ///<summary>
+        /// Esta es la clase que crea una lista enlazada que es utilizada en todo el proyecto
+        ///</summary>
         void Start()
         {
             visualizadorDados = FindObjectOfType<VisualizadorDados>();
@@ -50,6 +55,9 @@ namespace CrazyRisk.Managers
                 botonContinuarDefensor.onClick.AddListener(ContinuarDesdeDefensor);
         }
 
+        /// <summary>
+        /// Muestra el panel para que el jugador atacante seleccione la cantidad de dados a usar.
+        /// </summary>
         public void IniciarPreguntaAtacar(TerritorioUI atacante, TerritorioUI defensor, ManejadorAtaques manejador)
         {
             territorioAtacante = atacante;
@@ -75,6 +83,9 @@ namespace CrazyRisk.Managers
                 panelPreguntaAtacar.SetActive(true);
         }
 
+        /// <summary>
+        /// Configura las opciones del dropdown para seleccionar la cantidad de dados.
+        /// </summary>
         private void ConfigurarDropdown(TMP_Dropdown dropdown, int maxOpciones)
         {
             if (dropdown == null) return;
@@ -90,6 +101,9 @@ namespace CrazyRisk.Managers
             dropdown.RefreshShownValue();
         }
 
+        /// <summary>
+        /// Oculta el panel del atacante y muestra el panel para que el defensor seleccione sus dados.
+        /// </summary>
         private void ContinuarDesdeAtacante()
         {
             if (panelPreguntaAtacar != null)
@@ -98,6 +112,9 @@ namespace CrazyRisk.Managers
             MostrarPreguntaDefender();
         }
 
+        /// <summary>
+        /// Muestra el panel para que el jugador defensor seleccione la cantidad de dados a usar.
+        /// </summary>
         private void MostrarPreguntaDefender()
         {
             int maxDadosDefensor = Mathf.Min(tropasDefensor, 2);
@@ -111,6 +128,9 @@ namespace CrazyRisk.Managers
                 panelPreguntaDefender.SetActive(true);
         }
 
+        /// <summary>
+        /// Oculta el panel del defensor y ejecuta el combate con las selecciones realizadas.
+        /// </summary>
         private void ContinuarDesdeDefensor()
         {
             if (panelPreguntaDefender != null)
@@ -119,6 +139,9 @@ namespace CrazyRisk.Managers
             EjecutarCombateConSeleccion();
         }
 
+        /// <summary>
+        /// Ejecuta la lÃ³gica del combate usando los dados seleccionados, actualiza la interfaz y maneja la conquista.
+        /// </summary>
         private void EjecutarCombateConSeleccion()
         {
             int dadosAtacante = dropdownAtacante.value + 1;
@@ -130,25 +153,18 @@ namespace CrazyRisk.Managers
                 return;
             }
 
-            // Guardar estados ANTES del ataque
+            // Guardar estados antes del ataque
             var territorioAtacanteLogico = territorioAtacante.GetTerritorioLogico();
             var territorioDefensorLogico = territorioDefensor.GetTerritorioLogico();
 
             int tropasAtacantesAntes = territorioAtacanteLogico.CantidadTropas;
             int tropasDefensorAntes = territorioDefensorLogico.CantidadTropas;
 
-            Debug.Log($"=== ANTES DEL ATAQUE ===");
-            Debug.Log($"Atacante {territorioAtacanteLogico.Nombre}: {tropasAtacantesAntes} tropas");
-            Debug.Log($"Defensor {territorioDefensorLogico.Nombre}: {tropasDefensorAntes} tropas");
-
             // Ejecutar ataque
             ManejadorAtaques.ResultadoAtaque resultado = manejadorAtaques.EjecutarAtaqueConDados(dadosAtacante, dadosDefensor);
 
             if (resultado != null)
             {
-                Debug.Log($"=== DESPUÉS DEL ATAQUE ===");
-                Debug.Log($"Atacante {territorioAtacanteLogico.Nombre}: {territorioAtacanteLogico.CantidadTropas} tropas");
-                Debug.Log($"Defensor {territorioDefensorLogico.Nombre}: {territorioDefensorLogico.CantidadTropas} tropas");
 
                 // Mostrar dados PRIMERO (antes de actualizar UI)
                 if (visualizadorDados != null)
@@ -161,7 +177,7 @@ namespace CrazyRisk.Managers
                     );
                 }
 
-                // AHORA SÍ actualizar la interfaz UNA SOLA VEZ
+                // actualizar la interfaz
                 territorioAtacante.ActualizarInterfaz();
                 territorioDefensor.ActualizarInterfaz();
 
@@ -183,7 +199,7 @@ namespace CrazyRisk.Managers
 
                         territorioDefensor.CambiarColor(colorJugador);
 
-                        // Actualizar de nuevo después del cambio de color
+                        // Actualizar de nuevo despues del cambio de color
                         territorioDefensor.ActualizarInterfaz();
                     }
                 }

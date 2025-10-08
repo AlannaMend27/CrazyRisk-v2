@@ -4,18 +4,24 @@ using CrazyRisk.Estructuras;
 
 namespace CrazyRisk.LogicaJuego
 {
+    /// <summary>
+    /// Gestiona el intercambio y validación de tríos de tarjetas para refuerzos en el juego.
+    /// </summary>
     public class ManejadorTarjetas : MonoBehaviour
     {
         private static int contadorGlobalIntercambios = 0;
         private ManejadorRefuerzos manejadorRefuerzos;
 
+        /// <summary>
+        /// Inicializa el manejador de refuerzos al iniciar el componente.
+        /// </summary>
         void Start()
         {
             manejadorRefuerzos = new ManejadorRefuerzos();
         }
 
         /// <summary>
-        /// Intenta intercambiar 3 tarjetas del jugador
+        /// Intenta intercambiar 3 tarjetas del jugador.
         /// </summary>
         public bool IntentarIntercambio(Jugador jugador, int indice1, int indice2, int indice3)
         {
@@ -54,7 +60,7 @@ namespace CrazyRisk.LogicaJuego
         }
 
         /// <summary>
-        /// Encuentra automaticamente el mejor trio posible
+        /// Encuentra automáticamente el mejor trío posible de tarjetas para intercambio.
         /// </summary>
         public int[] EncontrarTrioValido(Jugador jugador)
         {
@@ -88,6 +94,9 @@ namespace CrazyRisk.LogicaJuego
             return null;
         }
 
+        /// <summary>
+        /// Devuelve el valor actual del contador global de intercambios.
+        /// </summary>
         public int GetContadorGlobal()
         {
             return contadorGlobalIntercambios;

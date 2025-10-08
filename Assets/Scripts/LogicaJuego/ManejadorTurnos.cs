@@ -6,6 +6,9 @@ using CrazyRisk.Managers;
 
 namespace CrazyRisk.LogicaJuego
 {
+    /// <summary>
+    /// Gestiona el flujo de turnos, fases y acciones de los jugadores durante la partida.
+    /// </summary>
     public class ManejadorTurnos : MonoBehaviour
     {
         [Header("UI del Turno")]
@@ -15,6 +18,7 @@ namespace CrazyRisk.LogicaJuego
         [SerializeField] private GameObject panelPlaneacion;
         [SerializeField] private GameObject botonSiguienteFase;
 
+        //Propiedades
         private Lista<Jugador> jugadores;
         private Lista<Continente> continentes;
         private int jugadorActualIndex = 0;
@@ -33,6 +37,9 @@ namespace CrazyRisk.LogicaJuego
             Planeacion
         }
 
+        /// <summary>
+        /// Inicializa los manejadores de refuerzos y combate al iniciar el componente.
+        /// </summary>
         void Start()
         {
             if (manejadorRefuerzos == null)
@@ -42,6 +49,9 @@ namespace CrazyRisk.LogicaJuego
                 manejadorCombate = new ManejadorCombate();
         }
 
+        /// <summary>
+        /// Inicializa la lista de jugadores y continentes, y comienza el primer turno.
+        /// </summary>
         public void InicializarTurnos(Lista<Jugador> listaJugadores, Lista<Continente> listaContinentes)
         {
             jugadores = listaJugadores;
@@ -59,11 +69,13 @@ namespace CrazyRisk.LogicaJuego
             IniciarTurno();
         }
 
+        /// <summary>
+        /// Inicia el turno del jugador actual, calcula refuerzos y muestra la interfaz correspondiente.
+        /// </summary>
         public void IniciarTurno()
         {
             if (jugadores == null || jugadores.getSize() == 0)
             {
-                Debug.LogError("No hay jugadores inicializados en ManejadorTurnos");
                 return;
             }
 
@@ -88,12 +100,13 @@ namespace CrazyRisk.LogicaJuego
 
             if (jugadorActual.getEsNeutral())
             {
-                Debug.Log(">>> Ejército neutral ejecutando turno automático");
                 EjecutarTurnoNeutral();
             }
         }
 
-        // MÉTODO MODIFICADO: Control explícito del jugador para pasar fases
+        /// <summary>
+        /// Permite al jugador pasar a la siguiente fase del turno si cumple las condiciones.
+        /// </summary>
         public void SiguienteFase()
         {
             Jugador jugadorActual = GetJugadorActual();
@@ -101,7 +114,6 @@ namespace CrazyRisk.LogicaJuego
             // Solo permitir si no es neutral (el neutral se maneja automáticamente)
             if (jugadorActual.getEsNeutral())
             {
-                Debug.Log("El ejército neutral se maneja automáticamente");
                 return;
             }
 
@@ -114,17 +126,17 @@ namespace CrazyRisk.LogicaJuego
                         return;
                     }
                     faseActual = FaseTurno.Ataque;
-                    Debug.Log($"✅ Pasando a fase: Ataque - Jugador: {jugadorActual.getNombre()}");
+                    Debug.Log($"Pasando a fase: Ataque - Jugador: {jugadorActual.getNombre()}");
                     break;
 
                 case FaseTurno.Ataque:
                     // El jugador puede elegir pasar a planeación incluso sin atacar
                     faseActual = FaseTurno.Planeacion;
-                    Debug.Log($"✅ Pasando a fase: Planeación - Jugador: {jugadorActual.getNombre()}");
+                    Debug.Log($"Pasando a fase: Planeación - Jugador: {jugadorActual.getNombre()}");
                     break;
 
                 case FaseTurno.Planeacion:
-                    Debug.Log($"✅ Terminando turno de: {jugadorActual.getNombre()}");
+                    Debug.Log($"Terminando turno de: {jugadorActual.getNombre()}");
                     SiguienteJugador();
                     return;
             }
@@ -133,7 +145,9 @@ namespace CrazyRisk.LogicaJuego
             MostrarPanelFase();
         }
 
-        // NUEVO MÉTODO: Para pasar directamente al siguiente jugador (después de conquista)
+        /// <summary>
+        /// Finaliza el turno después de una conquista y pasa automáticamente a la fase de planeación.
+        /// </summary>
         public void FinalizarTurnoDespuesDeConquista()
         {
             // Si está en fase de ataque y conquistó, pasar a planeación automáticamente
@@ -146,6 +160,9 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
+        /// <summary>
+        /// Avanza al siguiente jugador y reinicia el turno.
+        /// </summary>
         private void SiguienteJugador()
         {
             jugadorActualIndex = (jugadorActualIndex + 1) % jugadores.getSize();
@@ -153,6 +170,9 @@ namespace CrazyRisk.LogicaJuego
             IniciarTurno();
         }
 
+        /// <summary>
+        /// Actualiza la interfaz de usuario con la información del turno y fase actual.
+        /// </summary>
         private void ActualizarUI()
         {
             Jugador actual = GetJugadorActual();
@@ -182,6 +202,9 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
+        /// <summary>
+        /// Muestra el panel correspondiente a la fase actual del turno.
+        /// </summary>
         private void MostrarPanelFase()
         {
             if (panelRefuerzos != null)
@@ -201,18 +224,21 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
-        // MÉTODO MODIFICADO: Solo reducir refuerzos, NO pasar fase automáticamente
+        /// <summary>
+        /// Reduce la cantidad de refuerzos disponibles en el turno.
+        /// </summary>
         public void UsarRefuerzo()
         {
             if (refuerzosDisponibles > 0)
             {
                 refuerzosDisponibles--;
-                Debug.Log($"Refuerzo usado. Restantes: {refuerzosDisponibles}");
                 ActualizarUI();
             }
         }
 
-        // MÉTODO: Ejecutar turno completo del ejército neutral
+        /// <summary>
+        /// Ejecuta automáticamente el turno del ejército neutral.
+        /// </summary>
         private async void EjecutarTurnoNeutral()
         {
             Jugador neutral = GetJugadorActual();
@@ -238,7 +264,9 @@ namespace CrazyRisk.LogicaJuego
             SiguienteJugador();
         }
 
-        // MÉTODO: Solo colocar un refuerzo
+        /// <summary>
+        /// Permite que el ejército neutral coloque refuerzos de forma automática en sus territorios.
+        /// </summary>
         private void ColocarRefuerzoNeutralAleatorio()
         {
             if (refuerzosDisponibles <= 0) return;
@@ -262,10 +290,24 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
+        /// <summary>
+        /// Devuelve el jugador que tiene el turno actual.
+        /// </summary>
         public Jugador GetJugadorActual() => jugadores[jugadorActualIndex];
+
+        /// <summary>
+        /// Devuelve la fase actual del turno.
+        /// </summary>
         public FaseTurno GetFaseActual() => faseActual;
+
+        /// <summary>
+        /// Devuelve la cantidad de refuerzos disponibles en el turno actual.
+        /// </summary>
         public int GetRefuerzosDisponibles() => refuerzosDisponibles;
 
+        /// <summary>
+        /// Agrega refuerzos adicionales al jugador actual.
+        /// </summary>
         public void AgregarRefuerzosDinamicos(int cantidad)
         {
             refuerzosDisponibles += cantidad;
@@ -273,16 +315,20 @@ namespace CrazyRisk.LogicaJuego
             ActualizarUI();
         }
 
-        // NUEVO: Método para registrar que se realizó un ataque
+        // METODOS AUXILIARES
+
         public void RegistrarAtaqueRealizado()
         {
             ataqueRealizadoEnEsteTurno = true;
         }
-
         public bool PuedeColocarRefuerzos() => faseActual == FaseTurno.Refuerzos && refuerzosDisponibles > 0;
+
         public bool PuedeAtacar() => faseActual == FaseTurno.Ataque;
+
         public bool PuedePlanear() => faseActual == FaseTurno.Planeacion;
+
         public bool EsTurnoNeutral() => GetJugadorActual().getEsNeutral();
+
         public bool SeRealizoAtaqueEnEsteTurno() => ataqueRealizadoEnEsteTurno;
     }
 }

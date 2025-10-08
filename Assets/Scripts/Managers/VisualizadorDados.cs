@@ -5,6 +5,9 @@ using CrazyRisk.LogicaJuego;
 
 namespace CrazyRisk.Managers
 {
+    /// <summary>
+    /// Controla la visualización de los dados y los resultados de los combates en la interfaz de usuario.
+    /// </summary>
     public class VisualizadorDados : MonoBehaviour
     {
         [Header("Sprites de Dados (1-6)")]
@@ -29,6 +32,9 @@ namespace CrazyRisk.Managers
 
         private ManejadorCombate manejadorCombate;
 
+        /// <summary>
+        /// Inicializa el manejador de combate y configura el panel y el botón de continuar.
+        /// </summary>
         void Start()
         {
             manejadorCombate = new ManejadorCombate();
@@ -40,7 +46,9 @@ namespace CrazyRisk.Managers
                 botonContinuar.onClick.AddListener(CerrarPanel);
         }
 
-        // Nuevo método para mostrar resultados reales del combate
+        /// <summary>
+        /// Muestra el panel de combate con los resultados reales de los dados y bajas.
+        /// </summary>
         public void MostrarCombateConResultados(
             string nombreAtacante,
             string nombreDefensor,
@@ -65,6 +73,9 @@ namespace CrazyRisk.Managers
                 textoResultado.text = $"Bajas - Atacante: {bajasAtacante}, Defensor: {bajasDefensor}";
         }
 
+        /// <summary>
+        /// Muestra el combate generando los resultados de los dados y mostrando el resultado en la interfaz.
+        /// </summary>
         public void MostrarCombateConDados(string nombreAtacante, string nombreDefensor, int dadosAtacante, int dadosDefensor)
         {
             if (manejadorCombate == null)
@@ -90,6 +101,9 @@ namespace CrazyRisk.Managers
                 textoResultado.text = ExtraerResultadoSimple(resultado);
         }
 
+        /// <summary>
+        /// Muestra el combate generando los dados según las tropas y mostrando el resultado en la interfaz.
+        /// </summary>
         public void MostrarCombate(string nombreAtacante, string nombreDefensor, int tropasAtacante, int tropasDefensor)
         {
             if (manejadorCombate == null)
@@ -118,6 +132,9 @@ namespace CrazyRisk.Managers
                 textoResultado.text = ExtraerResultadoSimple(resultado);
         }
 
+        /// <summary>
+        /// Muestra los dados del atacante en la interfaz.
+        /// </summary>
         private void MostrarDadosAtacante(int[] dados)
         {
             if (dado1Atacante != null) dado1Atacante.gameObject.SetActive(false);
@@ -135,6 +152,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Muestra los dados del defensor en la interfaz.
+        /// </summary>
         private void MostrarDadosDefensor(int[] dados)
         {
             if (dado1Defensor != null) dado1Defensor.gameObject.SetActive(false);
@@ -151,6 +171,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Devuelve la referencia al Image correspondiente al dado del atacante según el índice.
+        /// </summary>
         private Image ObtenerDadoAtacante(int indice)
         {
             switch (indice)
@@ -162,6 +185,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Devuelve la referencia al Image correspondiente al dado del defensor según el índice.
+        /// </summary>
         private Image ObtenerDadoDefensor(int indice)
         {
             switch (indice)
@@ -172,6 +198,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Extrae y simplifica el resultado del combate para mostrarlo en la interfaz.
+        /// </summary>
         private string ExtraerResultadoSimple(string resultadoCompleto)
         {
             string[] lineas = resultadoCompleto.Split('\n');
@@ -191,6 +220,9 @@ namespace CrazyRisk.Managers
             return resultado.Trim();
         }
 
+        /// <summary>
+        /// Cierra el panel de combate en la interfaz.
+        /// </summary>
         private void CerrarPanel()
         {
             if (panelCombate != null)

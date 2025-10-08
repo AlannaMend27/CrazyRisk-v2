@@ -8,6 +8,9 @@ using Newtonsoft.Json;
 
 namespace CrazyRisk.Managers
 {
+    /// <summary>
+    /// Controlador principal del juego que coordina todas las capas y mantiene el estado de la partida
+    /// </summary>
     public class GameManager : MonoBehaviour
     {
         [Header("Referencias de Objetos en Escena")]
@@ -67,6 +70,9 @@ namespace CrazyRisk.Managers
             InvokeRepeating("VerificarEstadoPartida", 2f, 2f);
         }
 
+        /// <summary>
+        /// Verifica si el juego es en red y configura los parámetros correspondientes
+        /// </summary>
         private void VerificarJuegoEnRed()
         {
             if (PlayerPrefs.HasKey("NombreJugador"))
@@ -77,15 +83,13 @@ namespace CrazyRisk.Managers
                 {
                     esJuegoEnRed = false;
                     cantidadJugadoresRed = 2;
-                    crearNeutral = true;  // Modo solitario siempre con neutral
+                    crearNeutral = true;
                     Debug.Log("Modo solitario detectado - Sin networking");
                     return;
                 }
 
                 esJuegoEnRed = true;
                 cantidadJugadoresRed = PlayerPrefs.GetInt("CantidadJugadores", 2);
-
-                // Si son 3 jugadores en red, NO crear neutral
                 crearNeutral = (cantidadJugadoresRed == 2);
 
                 string nombreRed = PlayerPrefs.GetString("NombreJugador", "Jugador1");
@@ -108,6 +112,9 @@ namespace CrazyRisk.Managers
             Debug.Log("AdministradorRed creado y conectado al GameManager");
         }
 
+        /// <summary>
+        /// Inicializa todos los componentes del juego y prepara el mapa
+        /// </summary>
         private void InicializarJuego()
         {
             Debug.Log("=== INICIANDO CRAZY RISK ===");
@@ -137,7 +144,6 @@ namespace CrazyRisk.Managers
 
             if (jugadores.getSize() == 3)
             {
-                // Verificar si es neutral o jugador 3
                 if (jugadores[2].getEsNeutral())
                     jugadorNeutral = jugadores[2];
                 else
@@ -157,21 +163,19 @@ namespace CrazyRisk.Managers
         }
 
         /// <summary>
-        /// Inicia la fase de preparación manual
+        /// Inicia la fase de preparación donde los jugadores colocan sus tropas iniciales
         /// </summary>
         private void IniciarFasePreparacion()
         {
             enFasePreparacion = true;
             if (distribuidor == null)
             {
-                Debug.LogError("❌ Distribuidor no está disponible");
                 return;
             }
             distribuidor.OnTropaColocada += ActualizarTerritorioEspecifico;
             distribuidor.OnCambioTurno += ActualizarPanelDatos;
             distribuidor.OnPreparacionCompletada += FinalizarFasePreparacion;
 
-            // Crear lista de IDs activos
             Lista<int> idsActivos = new Lista<int>();
             idsActivos.Agregar(1);
             idsActivos.Agregar(2);
@@ -182,7 +186,7 @@ namespace CrazyRisk.Managers
             else if (jugadorNeutral != null)
             {
                 idsActivos.Agregar(3);
-                idNeutral = 3; // Marcar que el ID 3 es neutral
+                idNeutral = 3;
             }
 
             Lista<Jugador> jugadores = inicializadorJuego.getJugadores();
@@ -194,9 +198,6 @@ namespace CrazyRisk.Managers
             ActualizarPanelDatos();
         }
 
-        /// <summary>
-        /// Actualiza un territorio específico cuando se coloca una tropa
-        /// </summary>
         public void ActualizarTerritorioEspecifico(string nombreTerritorio)
         {
             TerritorioUI territorio = BuscarTerritorioUIPorNombre(nombreTerritorio);
@@ -204,7 +205,6 @@ namespace CrazyRisk.Managers
             if (territorio != null)
             {
                 territorio.ActualizarInterfaz();
-                Debug.Log($"✓ UI actualizada para: {nombreTerritorio}");
             }
             else
             {
@@ -213,7 +213,7 @@ namespace CrazyRisk.Managers
         }
 
         /// <summary>
-        /// Actualiza la lista de territorios controlados por cada jugador para luego iniciar la fase
+        /// Actualiza las listas de territorios controlados por cada jugador
         /// </summary>
         private void ActualizarTerritoriosJugadores()
         {
@@ -241,24 +241,15 @@ namespace CrazyRisk.Managers
                         jugadorNeutral.getTerritoriosControlados().Agregar(territorio);
                 }
             }
-
-            Debug.Log($"✓ Territorios actualizados:");
-            Debug.Log($"  {jugador1.getNombre()}: {jugador1.getCantidadTerritorios()} territorios");
-            Debug.Log($"  {jugador2.getNombre()}: {jugador2.getCantidadTerritorios()} territorios");
-            if (jugador3 != null)
-                Debug.Log($"  {jugador3.getNombre()}: {jugador3.getCantidadTerritorios()} territorios");
-            if (jugadorNeutral != null)
-                Debug.Log($"  Neutral: {jugadorNeutral.getCantidadTerritorios()} territorios");
         }
 
         /// <summary>
-        /// Actualiza el panel de datos según el estado actual del juego
+        /// Actualiza la información mostrada en el panel según la fase actual del juego
         /// </summary>
         public void ActualizarPanelDatos()
         {
             if (DatosFase == null) return;
 
-            // Durante preparación
             if (enFasePreparacion && distribuidor != null)
             {
                 int jugadorActualId = distribuidor.GetJugadorActual();
@@ -269,7 +260,6 @@ namespace CrazyRisk.Managers
                                 $"Turno: {nombreJugador}\n" +
                                 $"Tropas restantes: {tropasRestantes}";
             }
-            // Durante el juego normal
             else if (manejadorTurnos != null)
             {
                 Jugador jugadorActual = manejadorTurnos.GetJugadorActual();
@@ -297,9 +287,6 @@ namespace CrazyRisk.Managers
             }
         }
 
-        /// <summary>
-        /// Actualiza la visualización de todos los territorios
-        /// </summary>
         private void ActualizarVisualizacionCompleta()
         {
             foreach (TerritorioUI territorioUI in territoriosUI)
@@ -312,14 +299,13 @@ namespace CrazyRisk.Managers
         }
 
         /// <summary>
-        /// Intenta colocar una tropa durante la preparación
+        /// Intenta colocar una tropa durante la fase de preparación
         /// </summary>
         public bool IntentarColocarTropaPreparacion(string nombreTerritorio)
         {
             if (!enFasePreparacion || distribuidor == null)
                 return false;
 
-            // MODO RED: Enviar acción al servidor
             if (esJuegoEnRed && administradorRed != null)
             {
                 if (!administradorRed.EsMiTurno())
@@ -336,12 +322,9 @@ namespace CrazyRisk.Managers
                 };
 
                 administradorRed.EnviarAccionJuego(accion);
-
-                // NO ejecutar localmente, esperar confirmación del servidor
                 return true;
             }
 
-            // MODO LOCAL: Ejecutar directamente
             bool exito = distribuidor.IntentarColocarTropa(nombreTerritorio);
             if (exito)
             {
@@ -355,31 +338,21 @@ namespace CrazyRisk.Managers
 
             return exito;
         }
+
         /// <summary>
-        /// Finaliza la fase de preparación e inicia el juego normal
+        /// Finaliza la preparación e inicia el sistema de turnos del juego principal
         /// </summary>
         private void FinalizarFasePreparacion()
         {
-            Debug.Log(">>> GAME MANAGER: FinalizarFasePreparacion LLAMADO <<<");
             enFasePreparacion = false;
-
             Debug.Log("=== FINALIZANDO FASE DE PREPARACIÓN ===");
 
-            // Desuscribirse de eventos
             distribuidor.OnTropaColocada -= ActualizarTerritorioEspecifico;
             distribuidor.OnCambioTurno -= ActualizarPanelDatos;
             distribuidor.OnPreparacionCompletada -= FinalizarFasePreparacion;
 
-            // cambiar el texto del panel de información sobre la fase
             ActualizarPanelDatos();
-
-
-            // Actualizar territorios antes de iniciar turnos
             ActualizarTerritoriosJugadores();
-
-            Debug.Log("🎮 ¡FASE DE PREPARACIÓN COMPLETADA! Iniciando partida...");
-
-            // Iniciar el sistema de turnos
             InicializarSistemaTurnos();
         }
 
@@ -402,6 +375,9 @@ namespace CrazyRisk.Managers
                 cantidadJugadoresRed, crearNeutral);
         }
 
+        /// <summary>
+        /// Inicializa el sistema de turnos con los jugadores y continentes del juego
+        /// </summary>
         private void InicializarSistemaTurnos()
         {
             if (manejadorTurnos == null)
@@ -413,15 +389,15 @@ namespace CrazyRisk.Managers
             Lista<Jugador> jugadores = inicializadorJuego.getJugadores();
             Lista<Continente> continentes = inicializadorJuego.getContinentes();
 
-            //Actualizar territorios de cada jugador antes de iniciar
             ActualizarTerritoriosJugadores();
-
-
             manejadorTurnos.InicializarTurnos(jugadores, continentes);
 
             Debug.Log("Sistema de turnos inicializado");
         }
 
+        /// <summary>
+        /// Verifica periódicamente si algún jugador ha ganado la partida
+        /// </summary>
         private void VerificarEstadoPartida()
         {
             if (inicializadorJuego == null) return;
@@ -435,9 +411,6 @@ namespace CrazyRisk.Managers
             }
         }
 
-        /// <summary>
-        /// Actualiza la UI durante la fase de preparación
-        /// </summary>
         private void ActualizarDurantePreparacion()
         {
             if (enFasePreparacion)
@@ -447,6 +420,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Muestra el panel de victoria y desactiva los controles del juego
+        /// </summary>
         private void MostrarPanelVictoria(Jugador ganador)
         {
             if (panelVictoria != null)
@@ -493,6 +469,9 @@ namespace CrazyRisk.Managers
             territoriosUI = territoriosEncontrados;
         }
 
+        /// <summary>
+        /// Conecta los territorios lógicos con sus representaciones visuales en la interfaz
+        /// </summary>
         private void ConectarLogicaConInterfaz()
         {
             for (int i = 0; i < territoriosLogica.getSize(); i++)
@@ -566,19 +545,18 @@ namespace CrazyRisk.Managers
             if (jugadorId == 1)
                 return Color.green;
             else if (jugadorId == 2)
-                return new Color(0.5f, 0f, 0.8f);  // Morado
+                return new Color(0.5f, 0f, 0.8f);
             else if (jugadorId == 3)
             {
                 if (jugador3 != null)
-                    return Color.cyan;  // Azul para jugador 3
+                    return Color.cyan;
                 else
-                    return Color.gray;  // Gris para neutral
+                    return Color.gray;
             }
 
             return Color.white;
         }
 
-        // Agregar getter
         public Jugador GetJugador3() => jugador3;
 
         private void MostrarEstadisticas()
@@ -628,9 +606,6 @@ namespace CrazyRisk.Managers
         public int GetCantidadJugadoresRed() => cantidadJugadoresRed;
         public bool EstaEnFasePreparacion() => enFasePreparacion;
 
-        /// <summary>
-        /// Obtiene el jugador actual (preparación o juego)
-        /// </summary>
         public Jugador GetJugadorActual()
         {
             if (enFasePreparacion && distribuidor != null)
@@ -649,6 +624,10 @@ namespace CrazyRisk.Managers
 
             return null;
         }
+
+        /// <summary>
+        /// Ejecuta una acción de juego recibida desde la red
+        /// </summary>
         public void EjecutarAccionDesdeRed(string datosJson)
         {
             try
@@ -710,6 +689,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Ejecuta un ataque entre dos territorios recibido desde la red, actualizando el estado de ambos territorios y la interfaz.
+        /// </summary>
         private void EjecutarAtaqueRed(AccionJuego accion)
         {
             Territorio atacante = BuscarTerritorioPorNombre(accion.territorioOrigen);
@@ -729,7 +711,6 @@ namespace CrazyRisk.Managers
                 accion.dadosDefensor
             );
 
-
             if (resultado != null)
             {
                 ActualizarTerritorioEspecifico(accion.territorioOrigen);
@@ -747,6 +728,10 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Realiza el movimiento de tropas entre dos territorios, actualizando la cantidad de tropas en ambos
+        /// y refrescando la interfaz de usuario para reflejar los cambios.
+        /// </summary>
         private void EjecutarMovimientoTropas(AccionJuego accion)
         {
             Territorio origen = BuscarTerritorioPorNombre(accion.territorioOrigen);
@@ -774,6 +759,9 @@ namespace CrazyRisk.Managers
             return null;
         }
 
+        /// <summary>
+        /// Obtiene el estado actual completo del juego para sincronización en red
+        /// </summary>
         public EstadoJuego ObtenerEstadoActual()
         {
             EstadoJuego estado = new EstadoJuego();
@@ -801,6 +789,9 @@ namespace CrazyRisk.Managers
             return estado;
         }
 
+        /// <summary>
+        /// Actualiza el estado del juego local basado en información recibida de la red
+        /// </summary>
         public void ActualizarDesdeEstadoCompleto(EstadoJuego estado)
         {
             if (territoriosLogica == null || estado.territoriosPropietarios == null)

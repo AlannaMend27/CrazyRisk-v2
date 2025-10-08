@@ -10,20 +10,23 @@ namespace CrazyRisk.LogicaJuego
 {
     public class InicializadorJuego
     {
-        // Propiedades del juego
+        // Propiedades 
         private Lista<Territorio> todosLosTerritorios;
         private Lista<Continente> todosContinentes;
         private Lista<Jugador> jugadores;
         private Jugador jugador1;
         private Jugador jugador2;
-        private Jugador jugador3;  // NUEVO
+        private Jugador jugador3;  
         private Jugador jugadorNeutral;
         private Random random;
         private DistribuidorTerritorios distribuidor;
 
-        private bool crearNeutral = true;  // NUEVO
-        private int cantidadJugadores = 2;  // NUEVO
+        private bool crearNeutral = true; 
+        private int cantidadJugadores = 2; 
 
+        /// <summary>
+        /// Constructor que inicializa las listas de territorios, continentes y jugadores.
+        /// </summary>
         public InicializadorJuego()
         {
             todosLosTerritorios = new Lista<Territorio>();
@@ -32,13 +35,16 @@ namespace CrazyRisk.LogicaJuego
             random = new Random();
         }
 
+        /// <summary>
+        /// Devuelve el distribuidor de territorios.
+        /// </summary>
         public DistribuidorTerritorios GetDistribuidor()
         {
             return distribuidor;
         }
 
         /// <summary>
-        /// Inicializa con configuración de cantidad de jugadores
+        /// Inicializa con configuracion de cantidad de jugadores
         /// </summary>
         public void InicializarJuegoCompleto(string nombreJugador1, string colorJugador1,
                                              string nombreJugador2, string colorJugador2,
@@ -57,13 +63,18 @@ namespace CrazyRisk.LogicaJuego
             DistribuirTerritorios();
         }
 
-        // Sobrecarga del método original para compatibilidad
+        /// <summary>
+        /// Inicializa el juego completo con dos jugadores y un jugador neutral
+        /// </summary>
         public void InicializarJuegoCompleto(string nombreJugador1, string colorJugador1,
                                              string nombreJugador2, string colorJugador2)
         {
             InicializarJuegoCompleto(nombreJugador1, colorJugador1, nombreJugador2, colorJugador2, 2, true);
         }
 
+        /// <summary>
+        /// Inicializa la lista de continentes con sus respectivos bonos.
+        /// </summary>
         private void InicializarContinentes()
         {
             todosContinentes.Agregar(new Continente("North America", 9));
@@ -74,6 +85,9 @@ namespace CrazyRisk.LogicaJuego
             todosContinentes.Agregar(new Continente("Oceania", 4));
         }
 
+        /// <summary>
+        /// Inicializa la lista de territorios y los asigna a sus continentes
+        /// </summary>
         private void InicializarTerritorios()
         {
             // North America (9 territorios)
@@ -131,12 +145,19 @@ namespace CrazyRisk.LogicaJuego
             CrearTerritorio(42, "Eastern Australia", "Oceania");
         }
 
+
+        /// <summary>
+        /// Crea un territorio y lo agrega a la lista de territorios
+        /// </summary>
         private void CrearTerritorio(int id, string nombre, string continente)
         {
             Territorio nuevoTerritorio = new Territorio(id, nombre, continente);
             todosLosTerritorios.Agregar(nuevoTerritorio);
         }
 
+        /// <summary>
+        /// Configura las adyacencias de los territorios
+        /// </summary>
         private void ConfigurarAdyacencias()
         {
             // North America
@@ -211,6 +232,9 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
+        /// <summary>
+        /// Busca y retorna un territorio por su ID
+        /// </summary>
         private Territorio BuscarTerritorioPorId(int id)
         {
             for (int i = 0; i < todosLosTerritorios.getSize(); i++)
@@ -223,6 +247,9 @@ namespace CrazyRisk.LogicaJuego
             return null;
         }
 
+        /// <summary>
+        /// Inicializa los jugadores y, si corresponde, el jugador neutral.
+        /// </summary>
         private void InicializarJugadores(string nombre1, string color1, string nombre2, string color2)
         {
             jugador1 = new Jugador(1, nombre1, color1);
@@ -243,6 +270,9 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
+        /// <summary>
+        /// Distribuye los territorios entre los jugadores activos y actualiza la informaciÃ³n de control.
+        /// </summary>
         private void DistribuirTerritorios()
         {
             // Obtener IDs de todos los jugadores activos
@@ -256,6 +286,9 @@ namespace CrazyRisk.LogicaJuego
             ActualizarTerritoriosJugadores();
         }
 
+        /// <summary>
+        /// Actualiza la lista de territorios controlados por cada jugador
+        /// </summary>
         private void ActualizarTerritoriosJugadores()
         {
             for (int i = 0; i < jugadores.getSize(); i++)
@@ -284,4 +317,4 @@ namespace CrazyRisk.LogicaJuego
         public Lista<Jugador> getJugadores() { return jugadores; }
         public Jugador GetJugador3() => jugador3;
     } 
-} 
+}   

@@ -11,7 +11,7 @@ public class ActualizadorInfoJugadores : MonoBehaviour
     [SerializeField] private TextMeshProUGUI j2_nombre;
     [SerializeField] private TextMeshProUGUI j3_nombre;
 
-    [Header("Textos de Informaci�n")]
+    [Header("Textos de Informaci�n")]
     [SerializeField] private TextMeshProUGUI infoJ1;
     [SerializeField] private TextMeshProUGUI infoJ2;
     [SerializeField] private TextMeshProUGUI infoJ3;
@@ -22,6 +22,9 @@ public class ActualizadorInfoJugadores : MonoBehaviour
     private GameManager gameManager;
     private ManejadorRefuerzos manejadorRefuerzos;
 
+    /// <summary>
+    /// Inicializa referencias y comienza la actualización periódica de la información de los jugadores.
+    /// </summary>
     void Start()
     {
         gameManager = FindObjectOfType<GameManager>();
@@ -29,6 +32,9 @@ public class ActualizadorInfoJugadores : MonoBehaviour
         InvokeRepeating("ActualizarInfo", 0.5f, 0.5f);
     }
 
+    /// <summary>
+    /// Actualiza la información mostrada de los jugadores y el contador global en la interfaz.
+    /// </summary>
     void ActualizarInfo()
     {
         if (gameManager == null) return;
@@ -85,6 +91,9 @@ public class ActualizadorInfoJugadores : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Genera el texto de información para un jugador, incluyendo territorios, tropas y tarjetas.
+    /// </summary>
     private string GenerarTextoJugador(Jugador jugador)
     {
         int infanteria = 0, artilleria = 0, caballeria = 0;
@@ -104,7 +113,7 @@ public class ActualizadorInfoJugadores : MonoBehaviour
             }
         }
 
-        // AHORA EL NOMBRE NO SE INCLUYE AQU�
+        // AHORA EL NOMBRE NO SE INCLUYE AQU�
         return $"Territorios: {jugador.getCantidadTerritorios()}\n" +
                $"Tropas: {jugador.getTotalTropas()}\n" +
                $"Infanteria: {infanteria}\n" +

@@ -10,6 +10,9 @@ public class UIController : MonoBehaviour
     private GameManager gameManager;
     private ManejadorTarjetas manejadorTarjetas;
 
+    /// <summary>
+    /// Inicializa referencias a los manejadores y oculta el panel de intercambio al iniciar.
+    /// </summary>
     void Start()
     {
         manejadorTurnos = FindObjectOfType<ManejadorTurnos>();
@@ -26,6 +29,9 @@ public class UIController : MonoBehaviour
             panelIntercambio.SetActive(false);
     }
 
+    /// <summary>
+    /// Avanza a la siguiente fase del turno actual.
+    /// </summary>
     public void OnContinuar()
     {
         if (manejadorTurnos == null)
@@ -37,15 +43,21 @@ public class UIController : MonoBehaviour
         }
         else
         {
-            Debug.LogError("No se encontró ManejadorTurnos");
+            Debug.LogError("No se encontrï¿½ ManejadorTurnos");
         }
     }
 
+    /// <summary>
+    /// Ejecuta el ataque desde el botÃ³n de la interfaz.
+    /// </summary>
     public void OnAtacar()
     {
         TerritorioUI.EjecutarAtaqueDesdeBoton();
     }
 
+    /// <summary>
+    /// Realiza el intercambio automÃ¡tico de tarjetas si el jugador tiene un trÃ­o vÃ¡lido.
+    /// </summary>
     public void OnIntercambiar()
     {
         if (manejadorTurnos == null) return;
@@ -53,16 +65,16 @@ public class UIController : MonoBehaviour
         var jugador = manejadorTurnos.GetJugadorActual();
         if (jugador == null || jugador.getEsNeutral()) return;
 
-        // Buscar trío válido automáticamente
+        // Buscar trï¿½o vï¿½lido automï¿½ticamente
         int[] trio = manejadorTarjetas.EncontrarTrioValido(jugador);
 
         if (trio == null)
         {
-            Debug.LogWarning($"{jugador.getNombre()} no tiene un trío válido para intercambiar");
+            Debug.LogWarning($"{jugador.getNombre()} no tiene un trï¿½o vï¿½lido para intercambiar");
             return;
         }
 
-        // Intercambiar automáticamente
+        // Intercambiar automï¿½ticamente
         bool exito = manejadorTarjetas.IntentarIntercambio(jugador, trio[0], trio[1], trio[2]);
 
         if (exito)
@@ -75,6 +87,9 @@ public class UIController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Abandona la partida y regresa al menÃº principal.
+    /// </summary>
     public void OnAbandonar()
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene("MenuPrincipal");

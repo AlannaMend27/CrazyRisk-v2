@@ -6,6 +6,7 @@ namespace CrazyRisk.LogicaJuego
 {
     public class DistribuidorTerritorios
     {
+        //Prpiedades
         private Lista<Territorio> todosLosTerritorios;
         private Random random;
 
@@ -19,6 +20,8 @@ namespace CrazyRisk.LogicaJuego
         //EVENTOS
         // Evento para actualizar constantemente los numeros de los territorios
         public event System.Action<string> OnTropaColocada;
+
+        //evento para notificar el cambio de turno
         public event System.Action OnCambioTurno;
 
         // Evento para notificar cuando termina la preparación
@@ -70,7 +73,6 @@ namespace CrazyRisk.LogicaJuego
             this.idsJugadores = new int[numJugadores];
             tropasRestantes = new int[numJugadores];
 
-            // CORRECTO: Basado en si hay neutral o no
             int tropasIniciales = (idNeutral != -1) ? 26 : 21;
 
             for (int i = 0; i < numJugadores; i++)
@@ -81,10 +83,6 @@ namespace CrazyRisk.LogicaJuego
 
             jugadorActualIndex = 0;
             fasePreparacionActiva = true;
-
-            UnityEngine.Debug.Log("=== FASE DE PREPARACIÓN INICIADA ===");
-            UnityEngine.Debug.Log($"{numJugadores} jugadores - {tropasRestantes[0]} tropas por jugador");
-            UnityEngine.Debug.Log($"Turno de {GetNombreJugadorActual()}");
 
             if (EsNeutral(GetJugadorActual()))
             {
@@ -121,12 +119,14 @@ namespace CrazyRisk.LogicaJuego
 
             Territorio territorio = BuscarTerritorioPorNombre(nombreTerritorio);
 
+            //En caso de que el terrritorio no exista
             if (territorio == null)
             {
                 UnityEngine.Debug.LogError($"Territorio '{nombreTerritorio}' no encontrado");
                 return false;
             }
 
+            //En caso de que el territorio no sea del jugador en turno
             if (territorio.PropietarioId != jugadorActual)
             {
                 UnityEngine.Debug.LogWarning($"Este territorio no es tuyo. Pertenece a: {territorio.PropietarioId}");
@@ -141,6 +141,7 @@ namespace CrazyRisk.LogicaJuego
             UnityEngine.Debug.Log($"✓ {GetNombreJugadorActual()} colocó 1 tropa en {nombreTerritorio} (Total: {territorio.CantidadTropas})");
             UnityEngine.Debug.Log($"   Tropas restantes: {tropasRestantes[jugadorActualIndex]}");
 
+            //Avanzar al siguiente jugador
             AvanzarTurno();
             return true;
         }
@@ -226,18 +227,14 @@ namespace CrazyRisk.LogicaJuego
             UnityEngine.Debug.Log("=== FASE DE PREPARACIÓN COMPLETADA (Distribuidor) ===");
             VerificarDistribucion();
 
-            UnityEngine.Debug.Log("🎮 Disparando evento OnPreparacionCompletada...");
-
-            // Verificar si hay suscriptores
+            // Verificar si hay suscriptores al evento
             if (OnPreparacionCompletada != null)
             {
-                UnityEngine.Debug.Log($"   Hay {OnPreparacionCompletada.GetInvocationList().Length} suscriptor(es)");
                 OnPreparacionCompletada.Invoke();
-                UnityEngine.Debug.Log("   Evento disparado exitosamente");
             }
             else
             {
-                UnityEngine.Debug.LogError("❌ NO HAY SUSCRIPTORES al evento OnPreparacionCompletada");
+                UnityEngine.Debug.LogError("NO HAY SUSCRIPTORES al evento OnPreparacionCompletada");
             }
         }
 
@@ -258,16 +255,32 @@ namespace CrazyRisk.LogicaJuego
 
         // ========== MÉTODOS AUXILIARES ==========
 
+        /// <summary>
+        /// Obtiene el id del jugador que tiene el turno actual.
+        /// </summary>
         public int GetJugadorActual() => idsJugadores[jugadorActualIndex];
 
+        /// <summary>
+        /// Obtiene la cantidad de tropas restantes para el jugador actual.
+        /// </summary>
         public int GetTropasRestantesJugadorActual() => tropasRestantes[jugadorActualIndex];
 
+        /// <summary>
+        /// Indica si la fase de preparación está activa.
+        /// </summary>
         public bool EstaEnFasePreparacion() => fasePreparacionActiva;
 
+        /// <summary>
+        /// Indica si el jugador especificado es el neutral.
+        /// </summary>
         public bool EsNeutral(int jugadorId)
         {
             return jugadorId == idJugadorNeutral && idJugadorNeutral != -1;
         }
+        
+        /// <summary>
+        /// Indica si es el turno del jugador especificado.
+        /// </summary>
         public bool EsTurnoDelJugador(int jugadorId) => GetJugadorActual() == jugadorId;
 
         /// <summary>
@@ -295,8 +308,9 @@ namespace CrazyRisk.LogicaJuego
             return $"Jugador {id}";
         }
 
-        // ========== MÉTODOS AUXILIARES ==========
-
+        /// <summary>
+        /// Devuelve la lista de todos los territorios.
+        /// </summary>
         private Lista<Territorio> ObtenerTerritoriosPorJugador(int jugadorId)
         {
             Lista<Territorio> territoriosJugador = new Lista<Territorio>();
@@ -312,6 +326,9 @@ namespace CrazyRisk.LogicaJuego
             return territoriosJugador;
         }
 
+        /// <summary>
+        /// Cuenta el total de tropas que tiene el jugador especificado.
+        /// </summary>
         private int ContarTropasJugador(int jugadorId)
         {
             int total = 0;
@@ -325,6 +342,9 @@ namespace CrazyRisk.LogicaJuego
             return total;
         }
 
+        /// <summary>
+        /// Devuelve la lista de todos los territorios.
+        /// </summary>
         public Lista<Territorio> ObtenerTerritoriosDeJugador(int jugadorId)
         {
             return ObtenerTerritoriosPorJugador(jugadorId);
@@ -335,6 +355,9 @@ namespace CrazyRisk.LogicaJuego
             return todosLosTerritorios;
         }
 
+        /// <summary>
+        /// Verifica que la distribución de tropas sea la esperada para cada jugador.
+        /// </summary>
         private void VerificarDistribucion()
         {
             if (idsJugadores == null) return;
@@ -350,11 +373,9 @@ namespace CrazyRisk.LogicaJuego
                 if (tropas != tropasEsperadas)
                 {
                     throw new InvalidOperationException(
-                        $"❌ Error: Jugador {idsJugadores[i]} tiene {tropas} tropas, esperadas {tropasEsperadas}");
+                        $" Error: Jugador {idsJugadores[i]} tiene {tropas} tropas, esperadas {tropasEsperadas}");
                 }
             }
-
-            UnityEngine.Debug.Log($"✅ Verificación exitosa: {idsJugadores.Length} jugadores con {tropasEsperadas} tropas c/u");
         }
     }
 }

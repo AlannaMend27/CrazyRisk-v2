@@ -6,17 +6,27 @@ using CrazyRisk.Managers;
 
 namespace CrazyRisk.LogicaJuego
 {
+    /// <summary>
+    /// Gestiona la lógica de selección de territorios, ejecución de ataques y resolución de combates entre territorios
+    /// </summary>
     public class ManejadorAtaques
     {
         private ManejadorCombate manejadorCombate;
         private Territorio territorioAtacante;
         private Territorio territorioDefensor;
 
+
+        /// <summary>
+        /// Inicializa el manejador de ataques y su manejador de combate interno
+        /// </summary>
         public ManejadorAtaques()
         {
             manejadorCombate = new ManejadorCombate();
         }
 
+        /// <summary>
+        /// Selecciona el territorio atacante si pertenece al jugador y puede atacar
+        /// </summary>
         public bool SeleccionarAtacante(Territorio territorio, int jugadorId)
         {
             if (territorio.PropietarioId != jugadorId)
@@ -36,6 +46,9 @@ namespace CrazyRisk.LogicaJuego
             return true;
         }
 
+        /// <summary>
+        /// Selecciona el territorio defensor si es adyacente y no pertenece al jugador
+        /// </summary>
         public bool SeleccionarDefensor(Territorio territorio, int jugadorId)
         {
             if (territorioAtacante == null)
@@ -61,6 +74,9 @@ namespace CrazyRisk.LogicaJuego
             return true;
         }
 
+        /// <summary>
+        /// Ejecuta el ataque entre los territorios seleccionados usando el máximo de dados permitido
+        /// </summary>
         public ResultadoAtaque EjecutarAtaque()
         {
             if (territorioAtacante == null || territorioDefensor == null)
@@ -81,6 +97,9 @@ namespace CrazyRisk.LogicaJuego
             return EjecutarAtaqueConDados(dadosAtacante, dadosDefensor);
         }
 
+        /// <summary>
+        /// Ejecuta el ataque entre los territorios seleccionados usando la cantidad de dados especificada.
+        /// </summary>
         public ResultadoAtaque EjecutarAtaqueConDados(int dadosAtacante, int dadosDefensor)
         {
             if (territorioAtacante == null || territorioDefensor == null)
@@ -126,12 +145,12 @@ namespace CrazyRisk.LogicaJuego
             territorioAtacante.CantidadTropas -= resultado.tropasPerdidasAtacante;
             territorioDefensor.CantidadTropas -= resultado.tropasPerdidasDefensor;
 
-            // CONQUISTA AUTOMATICA si defensor queda en 0
+            // conquista automatica si la cantidad de tropas del defensor son 0
             if (territorioDefensor.CantidadTropas == 0)
             {
                 resultado.conquistado = true;
 
-                // Mover AUTOMATICAMENTE las tropas que atacaron
+                // Mover las tropas que atacaron
                 int tropasAMover = dadosAtacante;
 
                 // Validar que haya suficientes
@@ -159,14 +178,14 @@ namespace CrazyRisk.LogicaJuego
 
                         if (jugador != null && !jugador.getEsNeutral())
                         {
-                            // Verificar límite de tarjetas ANTES de dar la nueva
+                            // Verificar limite de tarjetas antes de dar la siguiente
                             if (jugador.getTarjetas().getSize() >= 5)
                             {
                                 Debug.LogWarning($"{jugador.getNombre()} tiene 5 tarjetas. Debe intercambiar antes de recibir otra.");
                                 IntercambiarAutomaticamente(jugador);
                             }
 
-                            // Dar la tarjeta DESPUÉS del intercambio
+                            // Dar la tarjeta luego del intercambio
                             Tarjeta nuevaTarjeta = Tarjeta.CrearTarjetaAleatoria(territorioDefensor.Nombre);
                             jugador.getTarjetas().Agregar(nuevaTarjeta);
 
@@ -174,12 +193,11 @@ namespace CrazyRisk.LogicaJuego
                         }
                     }
 
-                    // NUEVO: Notificar al ManejadorTurnos sobre la conquista exitosa
+                    // Notificar al ManejadorTurnos sobre la conquista exitosa
                     ManejadorTurnos manejadorTurnos = UnityEngine.Object.FindObjectOfType<ManejadorTurnos>();
                     if (manejadorTurnos != null)
                     {
                         manejadorTurnos.RegistrarAtaqueRealizado();
-                        // El jugador puede seguir atacando, no pasamos automáticamente a planeación
                     }
                 }
                 else
@@ -190,7 +208,7 @@ namespace CrazyRisk.LogicaJuego
             }
             else
             {
-                // NUEVO: Registrar ataque incluso si no hubo conquista
+                // Registrar ataque incluso si no hubo conquista
                 ManejadorTurnos manejadorTurnos = UnityEngine.Object.FindObjectOfType<ManejadorTurnos>();
                 if (manejadorTurnos != null)
                 {
@@ -201,6 +219,10 @@ namespace CrazyRisk.LogicaJuego
             return resultado;
         }
 
+
+        /// <summary>
+        /// Calcula las bajas de ambos bandos comparando los resultados de los dados.
+        /// </summary>
         private void CalcularBajas(int[] dadosAtacante, int[] dadosDefensor, ResultadoAtaque resultado)
         {
             // Ordenar los dados de mayor a menor
@@ -226,6 +248,9 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
+        /// <summary>
+        /// Realiza automáticamente el intercambio de tarjetas si el jugador supera el límite permitido.
+        /// </summary>
         private void IntercambiarAutomaticamente(Jugador jugador)
         {
             ManejadorTarjetas manejadorTarjetas = UnityEngine.Object.FindObjectOfType<ManejadorTarjetas>();
@@ -240,7 +265,7 @@ namespace CrazyRisk.LogicaJuego
 
             if (trio != null)
             {
-                // Obtener refuerzos ANTES de intercambiar
+                // Obtener refuerzos antes de intercambiar
                 ManejadorRefuerzos manejadorRefuerzos = new ManejadorRefuerzos();
                 int refuerzosObtenidos = manejadorRefuerzos.Fibonacci();
 
@@ -261,6 +286,9 @@ namespace CrazyRisk.LogicaJuego
             }
         }
 
+        /// <summary>
+        /// Limpia la selección de territorios atacante y defensor.
+        /// </summary>
         public void LimpiarSeleccion()
         {
             territorioAtacante = null;
@@ -270,13 +298,17 @@ namespace CrazyRisk.LogicaJuego
         public Territorio GetTerritorioAtacante() => territorioAtacante;
         public Territorio GetTerritorioDefensor() => territorioDefensor;
 
-        // NUEVO: Método para verificar si hay selección válida
+        /// <summary>
+        /// Indica si hay una selección válida de atacante y defensor.
+        /// </summary>
         public bool TieneSeleccionValida()
         {
             return territorioAtacante != null && territorioDefensor != null;
         }
 
-        // NUEVO: Método para obtener información de la selección actual
+        /// <summary>
+        /// Devuelve información textual sobre la selección actual de territorios.
+        /// </summary>
         public string GetInfoSeleccion()
         {
             if (territorioAtacante == null && territorioDefensor == null)
@@ -289,6 +321,9 @@ namespace CrazyRisk.LogicaJuego
                 return "Estado de selección inválido";
         }
 
+        /// <summary>
+        /// Representa el resultado de un ataque, incluyendo dados, bajas y si hubo conquista.
+        /// </summary>
         public class ResultadoAtaque
         {
             public string territorioAtacante;

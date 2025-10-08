@@ -23,7 +23,9 @@ public class MainMenu : MonoBehaviour
         if (inputIP != null) inputIP.text = "127.0.0.1";
     }
 
-    // NAVEGACI�N
+    /// <summary>
+    /// Muestra el menú principal y oculta los demás menús.
+    /// </summary>
     public void MostrarMenuPrincipal()
     {
         mainMenu.SetActive(true);
@@ -33,6 +35,9 @@ public class MainMenu : MonoBehaviour
         LimpiarMensajes();
     }
 
+    /// <summary>
+    /// Muestra el menú para crear partida y oculta los demás menús.
+    /// </summary>
     public void MostrarCrearPartida()
     {
         mainMenu.SetActive(false);
@@ -42,6 +47,9 @@ public class MainMenu : MonoBehaviour
         LimpiarMensajes();
     }
 
+    /// <summary>
+    /// Muestra el menú para unirse a partida y oculta los demás menús.
+    /// </summary>
     public void MostrarJoinGame()
     {
         mainMenu.SetActive(false);
@@ -51,6 +59,9 @@ public class MainMenu : MonoBehaviour
         LimpiarMensajes();
     }
 
+    /// <summary>
+    /// Muestra el menú de reglas/opciones y oculta los demás menús.
+    /// </summary>
     public void MostrarReglas()
     {
         mainMenu.SetActive(false);
@@ -60,7 +71,9 @@ public class MainMenu : MonoBehaviour
         LimpiarMensajes();
     }
 
-    // ACCIONES PRINCIPALES
+    /// <summary>
+    /// Crea una partida según el modo seleccionado y guarda las preferencias.
+    /// </summary>
     public void CrearPartida()
     {
         string nombre = inputNombreCrear.text.Trim();
@@ -91,6 +104,9 @@ public class MainMenu : MonoBehaviour
         SceneManager.LoadScene("mapita");
     }
 
+    /// <summary>
+    /// Permite unirse a una partida online, validando nombre e IP.
+    /// </summary>
     public void UnirsePartida()
     {
         string nombre = inputNombreJoin.text.Trim();
@@ -107,12 +123,17 @@ public class MainMenu : MonoBehaviour
         SceneManager.LoadScene("mapita");
     }
 
+    /// <summary>
+    /// Cierra la aplicación.
+    /// </summary>
     public void CerrarJuego()
     {
         Application.Quit();
     }
 
-    // VALIDACIONES
+    /// <summary>
+    /// Valida que el nombre ingresado sea válido.
+    /// </summary>
     private bool ValidarNombre(string nombre)
     {
         if (string.IsNullOrEmpty(nombre) || nombre.Length < 2)
@@ -123,6 +144,9 @@ public class MainMenu : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Valida que la IP ingresada sea válida.
+    /// </summary>
     private bool ValidarIP(string ip)
     {
         if (string.IsNullOrEmpty(ip))
@@ -133,7 +157,9 @@ public class MainMenu : MonoBehaviour
         return true;
     }
 
-    // UTILIDADES
+    /// <summary>
+    /// Muestra un mensaje en la interfaz con el color especificado.
+    /// </summary>
     private void MostrarMensaje(string mensaje, Color color)
     {
         if (textoEstado != null)
@@ -143,6 +169,9 @@ public class MainMenu : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Limpia los mensajes de estado en la interfaz.
+    /// </summary>
     private void LimpiarMensajes()
     {
         if (textoEstado != null) textoEstado.text = "";

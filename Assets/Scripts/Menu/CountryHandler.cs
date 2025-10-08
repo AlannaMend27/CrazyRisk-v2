@@ -14,7 +14,7 @@ public class CountryHandler : MonoBehaviour
 
     void OnMouseEnter()
     {
-        // Guardar el color ACTUAL en el momento del hover
+        // Guardar el color actual en el momento del hover
         oldColor = sprite.color;
         hoverColor = Color.Lerp(oldColor, Color.white, 0.3f);
         sprite.color = hoverColor;

@@ -18,8 +18,6 @@ namespace CrazyRisk.LogicaJuego
         /// <summary>
         /// Simula el lanzamiento de dados para el atacante
         /// </summary>
-        /// <param name="cantidadDados">Número de dados (1-3)</param>
-        /// <returns>Array de resultados ordenados de mayor a menor</returns>
         public int[] LanzarDadosAtacante(int cantidadDados)
         {
             if (cantidadDados < 1 || cantidadDados > 3)
@@ -43,7 +41,7 @@ namespace CrazyRisk.LogicaJuego
         /// <summary>
         /// Simula el lanzamiento de dados para el defensor
         /// </summary>
-        /// <param name="cantidadDados">Número de dados (1-2)</param>
+        /// <param name="cantidadDados">Nï¿½mero de dados (1-2)</param>
         /// <returns>Array de resultados ordenados de mayor a menor</returns>
         public int[] LanzarDadosDefensor(int cantidadDados)
         {
@@ -64,21 +62,21 @@ namespace CrazyRisk.LogicaJuego
         }
 
         /// <summary>
-        /// Resuelve un combate individual comparando dados según reglas de Risk
+        /// Resuelve un combate individual comparando dados segï¿½n reglas de Risk
         /// </summary>
         public string ResolverCombateIndividual(int[] dadosAtacante, int[] dadosDefensor)
         {
             int tropasPerdidasAtacante = 0;
             int tropasPerdidasDefensor = 0;
 
-            // Número de comparaciones = el menor entre ambos arrays
+            // Nï¿½mero de comparaciones = el menor entre ambos arrays
             int comparaciones = Math.Min(dadosAtacante.Length, dadosDefensor.Length);
 
             for (int i = 0; i < comparaciones; i++)
             {
                 if (dadosAtacante[i] > dadosDefensor[i])
                 {
-                    tropasPerdidasDefensor++; // Atacante gana esta comparación
+                    tropasPerdidasDefensor++; // Atacante gana esta comparaciï¿½n
                 }
                 else
                 {
@@ -102,11 +100,11 @@ namespace CrazyRisk.LogicaJuego
         }
 
         /// <summary>
-        /// Valida si un ataque es legal según las reglas de Risk
+        /// Valida si un ataque es legal segï¿½n las reglas de Risk
         /// </summary>
         public bool ValidarAtaque(Territorio atacante, Territorio defensor)
         {
-            // El territorio atacante debe tener al menos 2 tropas (deja 1 de guarnición)
+            // El territorio atacante debe tener al menos 2 tropas (deja 1 de guarniciï¿½n)
             if (atacante.CantidadTropas < 2)
                 return false;
 

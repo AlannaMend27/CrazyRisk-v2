@@ -6,11 +6,15 @@ namespace CrazyRisk.Managers
 {
     public class ControladorVictoria : MonoBehaviour
     {
+        /// <summary>
+        /// Desconecta del servidor o cliente si estÃ¡n activos, limpia las preferencias del jugador,
+        /// restaura el tiempo del juego y carga la escena del menÃº principal.
+        /// </summary>
         public void VolverAlMenu()
         {
-            Debug.Log("Volviendo al menú principal...");
+            Debug.Log("Volviendo al menï¿½ principal...");
 
-            // Desconectar del servidor/cliente si hay conexión activa
+            // Desconecta del servidor/cliente si hay conexion activa
             ServidorRisk servidor = FindObjectOfType<ServidorRisk>();
             if (servidor != null)
             {
@@ -25,7 +29,7 @@ namespace CrazyRisk.Managers
                 Debug.Log("Cliente desconectado");
             }
 
-            // Limpiar PlayerPrefs de la sesión
+            // Limpiar PlayerPrefs de la sesion
             PlayerPrefs.DeleteKey("NombreJugador");
             PlayerPrefs.DeleteKey("EsServidor");
             PlayerPrefs.DeleteKey("ModoSolo");
@@ -33,11 +37,11 @@ namespace CrazyRisk.Managers
             PlayerPrefs.DeleteKey("IP");
             PlayerPrefs.Save();
 
-            // Restaurar el tiempo (por si lo pausaste)
+            // Restaurar el tiempo (en caso de pausa)
             Time.timeScale = 1;
 
-            // Cargar la escena del menú
-            SceneManager.LoadScene("MenuPrincipal"); // O el nombre de tu escena de menú
+            // Cargar la escena del menu
+            SceneManager.LoadScene("MenuPrincipal");
         }
     }
 }

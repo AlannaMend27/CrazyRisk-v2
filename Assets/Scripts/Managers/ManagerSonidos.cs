@@ -2,6 +2,10 @@ using UnityEngine;
 
 namespace CrazyRisk.Managers
 {
+    /// <summary>
+    /// Administra y reproduce los efectos de sonido del juego.
+    /// Implementa el patrÃ³n Singleton para persistencia entre escenas.
+    /// </summary>
     public class ManagerSonidos : MonoBehaviour
     {
         public static ManagerSonidos Instance;
@@ -20,13 +24,16 @@ namespace CrazyRisk.Managers
 
         private AudioSource audioSource;
 
+        /// <summary>
+        /// Inicializa el singleton y configura el AudioSource.
+        /// </summary>
         void Awake()
         {
             if (Instance == null)
             {
                 Instance = this;
 
-                // Asegurarse de que el GameObject sea raíz antes de usar DontDestroyOnLoad
+                // Asegurarse de que el GameObject sea raiz antes de usar DontDestroyOnLoad
                 transform.SetParent(null);
                 DontDestroyOnLoad(gameObject);
             }
@@ -41,42 +48,63 @@ namespace CrazyRisk.Managers
             audioSource.volume = volumenEfectos;
         }
 
+        /// <summary>
+        /// Reproduce el sonido de conquista de territorio.
+        /// </summary>
         public void ReproducirConquista()
         {
             if (conquista != null)
                 audioSource.PlayOneShot(conquista);
         }
 
+        /// <summary>
+        /// Reproduce el sonido al colocar tropas.
+        /// </summary>
         public void ReproducirColocarTropas()
         {
             if (colocarTropa != null)
                 audioSource.PlayOneShot(colocarTropa);
         }
 
+        /// <summary>
+        /// Reproduce el sonido al cambiar de turno o al conectarse.
+        /// </summary>
         public void ReproducirCambioTurno()
         {
             if (conectadoOTurno != null)
                 audioSource.PlayOneShot(conectadoOTurno);
         }
 
+        /// <summary>
+        /// Reproduce el sonido de lanzamiento de dados.
+        /// </summary>
         public void ReproducirDados()
         {
             if (dados != null)
                 audioSource.PlayOneShot(dados);
         }
 
+        /// <summary>
+        /// Reproduce el sonido de victoria.
+        /// </summary>
         public void ReproducirVictoria()
         {
             if (victoria != null)
                 audioSource.PlayOneShot(victoria);
         }
 
+        /// <summary>
+        /// Reproduce el sonido de click en la interfaz.
+        /// </summary>
         public void ReproducirClick()
         {
             if (click != null)
                 audioSource.PlayOneShot(click);
         }
 
+        /// <summary>
+        /// Reproduce el sonido de error.
+        /// </summary>
         public void ReproducirError()
         {
             if (error != null)

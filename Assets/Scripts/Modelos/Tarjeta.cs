@@ -35,7 +35,9 @@ namespace CrazyRisk.Modelos
             return $"{tipo} - {territorioAsociado}";
         }
 
-        // MÈtodo est·tico para crear tarjeta aleatoria
+        /// <summary>
+        /// Crea una tarjeta aleatoria asignando un tipo al azar y asoci√°ndola al territorio especificado.
+        /// </summary>
         public static Tarjeta CrearTarjetaAleatoria(string territorio)
         {
             Random random = new Random();

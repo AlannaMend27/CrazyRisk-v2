@@ -33,6 +33,9 @@ namespace CrazyRisk.Managers
         private static TerritorioUI territorioAtacanteSeleccionado = null;
         private static TerritorioUI territorioDefensorSeleccionado = null;
 
+        /// <summary>
+        /// Inicializa el territorio visual, busca componentes y referencias necesarias.
+        /// </summary>
         void Start()
         {
             if (string.IsNullOrEmpty(nombreTerritorio))
@@ -51,6 +54,9 @@ namespace CrazyRisk.Managers
                 bordeSeleccion.SetActive(false);
         }
 
+        /// <summary>
+        /// Busca y asigna los componentes visuales necesarios del territorio.
+        /// </summary>
         private void BuscarComponentes()
         {
             if (spriteRenderer == null)
@@ -87,6 +93,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Limpia las selecciones estáticas de atacante y defensor en todos los territorios.
+        /// </summary>
         public static void LimpiarSeleccionesEstaticas()
         {
             if (territorioAtacanteSeleccionado != null)
@@ -102,18 +111,27 @@ namespace CrazyRisk.Managers
             }
         }
        
+        /// <summary>
+        /// Busca y asigna referencias a GameManager y ManejadorTurnos.
+        /// </summary>
         private void BuscarReferencias()
         {
             gameManager = FindObjectOfType<GameManager>();
             manejadorTurnos = FindObjectOfType<ManejadorTurnos>();
         }
 
+        /// <summary>
+        /// Inicializa el territorio lógico asociado a este territorio visual y actualiza la interfaz.
+        /// </summary>
         public void InicializarTerritorio(Territorio territorio)
         {
             territorioLogico = territorio;
             ActualizarInterfaz();
         }
 
+        /// <summary>
+        /// Actualiza la interfaz visual del territorio con la información lógica actual.
+        /// </summary>
         public void ActualizarInterfaz()
         {
             if (territorioLogico == null) return;
@@ -125,6 +143,9 @@ namespace CrazyRisk.Managers
                 textoNombre.text = territorioLogico.Nombre;
         }
 
+        /// <summary>
+        /// Cambia el color visual del territorio.
+        /// </summary>
         public void CambiarColor(Color nuevoColor)
         {
             if (spriteRenderer != null)
@@ -135,6 +156,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Avanza a la siguiente fase del turno actual desde el territorio.
+        /// </summary>
         public void OnContinuar()
         {
             if (manejadorTurnos == null)
@@ -150,6 +174,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Cambia el color del territorio al pasar el mouse por encima, según el estado del juego.
+        /// </summary>
         void OnMouseEnter()
         {
             if (spriteRenderer == null || estaSeleccionado) return;
@@ -163,7 +190,6 @@ namespace CrazyRisk.Managers
                     Territorio atacante = territorioAtacanteSeleccionado.GetTerritorioLogico();
                     Jugador jugadorActual = manejadorTurnos.GetJugadorActual();
 
-                    // Si este territorio NO es mío Y es adyacente al atacante
                     if (territorioLogico.PropietarioId != jugadorActual.getId() &&
                         atacante.EsAdyacenteA(territorioLogico.Id))
                     {
@@ -173,16 +199,21 @@ namespace CrazyRisk.Managers
                 }
             }
 
-            // Hover normal para cualquier otro caso
             spriteRenderer.color = colorHover;
         }
 
+        /// <summary>
+        /// Restaura el color original del territorio al quitar el mouse.
+        /// </summary>
         void OnMouseExit()
         {
             if (spriteRenderer != null && !estaSeleccionado)
                 spriteRenderer.color = colorOriginal;
         }
 
+        /// <summary>
+        /// Maneja el clic sobre el territorio, gestionando la acción según la fase del juego.
+        /// </summary>
         void OnMouseDown()
         {
             Debug.Log($"Click detectado en: {gameObject.name}");
@@ -193,7 +224,6 @@ namespace CrazyRisk.Managers
                 return;
             }
 
-            // NUEVO: Validar turno en modo red
             if (gameManager.EsJuegoEnRed() && !gameManager.EsMiTurno())
             {
                 ManagerSonidos.Instance?.ReproducirError();
@@ -252,6 +282,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Limpia referencias estáticas si este territorio es destruido.
+        /// </summary>
         void OnDestroy()
         {
             // Limpiar referencias estáticas cuando se destruye
@@ -262,6 +295,9 @@ namespace CrazyRisk.Managers
                 territorioDefensorSeleccionado = null;
         }
 
+        /// <summary>
+        /// Maneja la colocación de tropas durante la fase de preparación.
+        /// </summary>
         private void ManejarFasePreparacion()
         {
             if (territorioLogico == null)
@@ -276,7 +312,7 @@ namespace CrazyRisk.Managers
 
             if (exito)
             {
-                ManagerSonidos.Instance?.ReproducirColocarTropas(); 
+                ManagerSonidos.Instance?.ReproducirColocarTropas();
                 ActualizarInterfaz();
                 Debug.Log($"Tropa colocada exitosamente en {territorioLogico.Nombre}");
             }
@@ -286,11 +322,14 @@ namespace CrazyRisk.Managers
             }
         }
 
+
+        /// <summary>
+        /// Maneja la colocación de refuerzos en la fase correspondiente.
+        /// </summary>
         private void ManejarRefuerzos(Jugador jugadorActual)
         {
             if (manejadorTurnos == null)
             {
-                Debug.LogError("ManejadorTurnos es null");
                 return;
             }
 
@@ -314,15 +353,18 @@ namespace CrazyRisk.Managers
                 manejadorTurnos.UsarRefuerzo();
                 ManagerSonidos.Instance?.ReproducirColocarTropas();
                 ActualizarInterfaz();
-                Debug.Log($"✓ {jugadorActual.getNombre()} colocó 1 refuerzo en {territorioLogico.Nombre}");
+                Debug.Log($"{jugadorActual.getNombre()} colocó 1 refuerzo en {territorioLogico.Nombre}");
             }
             else
             {
-                Debug.LogWarning($"✗ {jugadorActual.getNombre()} intentó colocar refuerzo en territorio ajeno");
+                Debug.LogWarning($" {jugadorActual.getNombre()} intentó colocar refuerzo en territorio ajeno");
                 ManagerSonidos.Instance?.ReproducirError();
             }
         }
 
+        /// <summary>
+        /// Gestiona la selección de atacante y defensor durante la fase de ataque.
+        /// </summary>
         private void ManejarAtaque(Jugador jugadorActual)
         {
             // Buscar referencias
@@ -332,7 +374,7 @@ namespace CrazyRisk.Managers
             if (visualizadorDados == null)
                 visualizadorDados = FindObjectOfType<VisualizadorDados>();
 
-            // CASO 1: Si es mi territorio con 2+ tropas -> seleccionar como atacante
+            // Si es mi territorio con mas de 2 tropas y esta activado seleccionar como atacante
             if (territorioLogico.PropietarioId == jugadorActual.getId())
             {
                 if (territorioLogico.PuedeAtacar())
@@ -360,7 +402,7 @@ namespace CrazyRisk.Managers
                     Debug.Log("Este territorio necesita al menos 2 tropas para atacar");
                 }
             }
-            // CASO 2: Si es enemigo y hay atacante seleccionado -> seleccionar como defensor
+            // Si es enemigo y hay atacante seleccionado entonces seleccionar como defensor
             else if (territorioAtacanteSeleccionado != null)
             {
                 if (manejadorAtaques.SeleccionarDefensor(territorioLogico, jugadorActual.getId()))
@@ -381,7 +423,9 @@ namespace CrazyRisk.Managers
             }
         }
 
-        // Método para seleccionar en rojo (defensor)
+        /// <summary>
+        /// Selecciona visualmente el territorio como defensor (color rojo).
+        /// </summary>
         private void SeleccionarTerritorioRojo()
         {
             estaSeleccionado = true;
@@ -393,7 +437,9 @@ namespace CrazyRisk.Managers
                 spriteRenderer.color = Color.red;
         }
 
-        // Método estático llamado desde el botón UI
+        /// <summary>
+        /// Ejecuta el ataque entre los territorios seleccionados desde el botón de la interfaz.
+        /// </summary>
         public static void EjecutarAtaqueDesdeBoton()
         {
             if (territorioAtacanteSeleccionado == null || territorioDefensorSeleccionado == null)
@@ -435,6 +481,9 @@ namespace CrazyRisk.Managers
             );
         }
 
+        /// <summary>
+        /// Obtiene el color correspondiente al jugador según su ID.
+        /// </summary>
         private Color ObtenerColorJugador(int jugadorId)
         {
             if (jugadorId == gameManager.GetJugador1().getId())
@@ -444,6 +493,9 @@ namespace CrazyRisk.Managers
             return Color.gray;
         }
 
+        /// <summary>
+        /// Gestiona la selección de territorios para mover tropas en la fase de planeación.
+        /// </summary>
         private void ManejarPlaneacion(Jugador jugadorActual)
         {
             Debug.Log($"=== PLANEACION: Click en {territorioLogico.Nombre} ===");
@@ -486,6 +538,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Selecciona o deselecciona visualmente el territorio (color amarillo).
+        /// </summary>
         private void SeleccionarTerritorio()
         {
             estaSeleccionado = !estaSeleccionado;
@@ -502,6 +557,9 @@ namespace CrazyRisk.Managers
             }
         }
 
+        /// <summary>
+        /// Deselecciona visualmente el territorio y restaura su color original.
+        /// </summary>
         public void DeseleccionarTerritorio()
         {
             estaSeleccionado = false;
