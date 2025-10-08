@@ -17,10 +17,15 @@ namespace CrazyRisk.Red
 
         private TcpListener servidor;
         private List<ClienteConectado> clientes = new List<ClienteConectado>();
+        private readonly object clientesLock = new object();
         private Thread hiloServidor;
-        private bool activo = false;
+        private volatile bool activo = false;
+        // flag para solicitar cierre ordenado del servidor
+        private volatile bool solicitarCierreServidor = false;
         private int jugadorEnTurno = 1;
         private int cantidadJugadoresConectados = 1; // El servidor es jugador 1
+        private UnityMainThreadDispatcher dispatcher;
+        private string nombreHost = "Servidor";
 
         public System.Action<MensajeRed> OnMensajeRecibido;
         public System.Action<string> OnClienteConectado;
@@ -34,22 +39,34 @@ namespace CrazyRisk.Red
             public string nombre;
             public int id;
             public bool conectado = true;
+            // lock para proteger escrituras concurrentes
+            public object writeLock = new object();
         }
 
         void Start()
         {
             DontDestroyOnLoad(gameObject);
+            if (!Application.isPlaying) return;
+            dispatcher = UnityMainThreadDispatcher.Instance();
+        }
+
+        void Awake()
+        {
+            dispatcher = UnityMainThreadDispatcher.Instance();
         }
 
         public bool IniciarServidor(string nombreHost)
         {
             try
             {
+                // Guardar el nombre del host para enviarlo en ACTUALIZAR_NOMBRES
+                this.nombreHost = string.IsNullOrEmpty(nombreHost) ? "Servidor" : nombreHost;
                 servidor = new TcpListener(IPAddress.Any, puerto);
                 servidor.Start();
                 activo = true;
 
                 hiloServidor = new Thread(EscucharConexiones);
+                hiloServidor.IsBackground = true;
                 hiloServidor.Start();
 
                 Debug.Log($"Servidor iniciado por {nombreHost} - Puerto {puerto}");
@@ -68,7 +85,10 @@ namespace CrazyRisk.Red
             {
                 try
                 {
-                    if (servidor.Pending() && clientes.Count < maxJugadores - 1)
+                    int actuales;
+                    lock (clientesLock) { actuales = clientes.Count; }
+                    if (solicitarCierreServidor) break;
+                    if (servidor.Pending() && actuales < maxJugadores - 1)
                     {
                         TcpClient nuevoCliente = servidor.AcceptTcpClient();
                         AgregarCliente(nuevoCliente);
@@ -94,25 +114,41 @@ namespace CrazyRisk.Red
             };
 
             cliente.hilo = new Thread(() => EscucharCliente(cliente));
+            cliente.hilo.IsBackground = true;
             cliente.hilo.Start();
-            clientes.Add(cliente);
+            lock (clientesLock)
+            {
+                clientes.Add(cliente);
+            }
 
             Debug.Log($"Cliente {cliente.id} conectado. Total: {cantidadJugadoresConectados} jugadores");
         }
 
         private void EscucharCliente(ClienteConectado cliente)
         {
-            byte[] buffer = new byte[4096];
-
-            while (activo && cliente.conectado && cliente.tcpClient.Connected)
+            try
             {
-                try
+                // Leave the stream open: we'll close it explicitly en RemoverCliente
+                using (var reader = new System.IO.StreamReader(cliente.stream, Encoding.UTF8, false, 1024, leaveOpen: true))
                 {
-                    int bytes = cliente.stream.Read(buffer, 0, buffer.Length);
-                    if (bytes > 0)
+                    while (activo && cliente.conectado && cliente.tcpClient.Connected)
                     {
-                        string json = Encoding.UTF8.GetString(buffer, 0, bytes);
-                        MensajeRed mensaje = JsonConvert.DeserializeObject<MensajeRed>(json);
+                        string line = reader.ReadLine();
+                        if (line == null)
+                            break;
+
+                        MensajeRed mensaje = null;
+                        try
+                        {
+                            mensaje = JsonConvert.DeserializeObject<MensajeRed>(line);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogError($"Error deserializando mensaje del cliente {cliente.id}: {ex.Message}\n{line}");
+                            continue;
+                        }
+
+                        if (mensaje == null) continue;
 
                         if (mensaje.tipo == "CONEXION" && string.IsNullOrEmpty(cliente.nombre))
                         {
@@ -158,15 +194,15 @@ namespace CrazyRisk.Red
                                 break;
                         }
 
-                        UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                        dispatcher?.Enqueue(() => {
                             OnMensajeRecibido?.Invoke(mensaje);
                         });
                     }
                 }
-                catch
-                {
-                    break;
-                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error leyendo cliente: {ex.Message}");
             }
 
             RemoverCliente(cliente);
@@ -187,45 +223,133 @@ namespace CrazyRisk.Red
             };
             EnviarACliente(cliente, respuesta);
 
-            // NUEVO: Enviar nombres de todos los jugadores a todos
+            // NUEVO: Enviar nombres de todos los jugadores a todos (hilo principal por PlayerPrefs)
+            Debug.Log($"ProcesarConexionInicial - cliente.nombre={cliente.nombre}");
+            lock (clientesLock)
+            {
+                foreach (var c in clientes)
+                    Debug.Log($"Cliente conectado snapshot: id={c.id} nombre={c.nombre}");
+            }
             ActualizarNombresJugadores();
 
-            UnityMainThreadDispatcher.Instance().Enqueue(() => {
+            // Enviar estado completo del juego al cliente recién conectado
+            try
+            {
+                // Pequeña espera para que el cliente procese la confirmación primero
+                Thread.Sleep(200);
+                EnviarEstadoCompleto(cliente);
+            }
+            catch (Exception) { }
+
+            dispatcher?.Enqueue(() => {
                 OnClienteConectado?.Invoke(cliente.nombre);
             });
         }
 
         private void ActualizarNombresJugadores()
         {
-            string[] nombres = new string[cantidadJugadoresConectados];
-            nombres[0] = PlayerPrefs.GetString("NombreJugador", "Servidor");
+            // PlayerPrefs.GetString must be called on main thread. Ejecutamos todo el proceso en el hilo principal
+            dispatcher?.Enqueue(() => {
+                string serverName = this.nombreHost ?? PlayerPrefs.GetString("NombreJugador", "Servidor");
 
-            for (int i = 0; i < clientes.Count; i++)
-            {
-                nombres[i + 1] = clientes[i].nombre;
-            }
+                List<ClienteConectado> snapshot;
+                lock (clientesLock)
+                {
+                    snapshot = new List<ClienteConectado>(clientes);
+                }
 
-            MensajeRed mensaje = new MensajeRed
-            {
-                tipo = "ACTUALIZAR_NOMBRES",
-                datos = JsonConvert.SerializeObject(nombres),
-                jugadorId = 1
-            };
+                // Si algún cliente tiene el mismo nombre que el host, marcar el host para disambiguar
+                bool conflicto = false;
+                foreach (var c in snapshot)
+                {
+                    if (string.Equals(c.nombre, serverName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        conflicto = true;
+                        break;
+                    }
+                }
 
-            DistribuirMensaje(mensaje);
+                if (conflicto)
+                {
+                    serverName = serverName + " (Host)";
+                }
+
+                // Detectar duplicados y disambiguar nombres
+                // Construimos un mapa de nombre -> ocurrencias (incluye host)
+                var nameOccurrences = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<int>>(StringComparer.OrdinalIgnoreCase);
+                // incluir host bajo su raw name
+                if (!nameOccurrences.ContainsKey(this.nombreHost))
+                    nameOccurrences[this.nombreHost] = new System.Collections.Generic.List<int>();
+                nameOccurrences[this.nombreHost].Add(0); // 0 para host
+
+                for (int i = 0; i < snapshot.Count; i++)
+                {
+                    string n = snapshot[i].nombre ?? "";
+                    if (!nameOccurrences.ContainsKey(n))
+                        nameOccurrences[n] = new System.Collections.Generic.List<int>();
+                    nameOccurrences[n].Add(snapshot[i].id);
+                }
+
+                int total = snapshot.Count + 1;
+                string[] nombres = new string[total];
+
+                // Resolver nombre del host
+                string hostDisplay = serverName;
+                if (nameOccurrences.TryGetValue(this.nombreHost, out var hostList) && hostList.Count > 1)
+                {
+                    hostDisplay = serverName + " (Host)";
+                }
+                nombres[0] = hostDisplay;
+
+                // Resolver nombres de clientes, si hay conflicto con host o entre clientes añadir sufijo con id
+                for (int i = 0; i < snapshot.Count; i++)
+                {
+                    string raw = snapshot[i].nombre ?? "";
+                    string display = raw;
+                    if (string.Equals(raw, this.nombreHost, StringComparison.OrdinalIgnoreCase))
+                    {
+                        display = raw + $" (P{snapshot[i].id})";
+                    }
+                    else if (nameOccurrences.TryGetValue(raw, out var occ) && occ.Count > 1)
+                    {
+                        // varios clientes con el mismo nombre
+                        display = raw + $" (P{snapshot[i].id})";
+                    }
+                    nombres[i + 1] = display;
+                }
+
+                MensajeRed mensaje = new MensajeRed
+                {
+                    tipo = "ACTUALIZAR_NOMBRES",
+                    datos = JsonConvert.SerializeObject(nombres),
+                    jugadorId = 1
+                };
+
+                // Distribuir desde el hilo principal es aceptable aquí (operación rápida)
+                DistribuirMensaje(mensaje);
+            });
         }
 
         private void EnviarACliente(ClienteConectado cliente, MensajeRed mensaje)
         {
             try
             {
-                string json = JsonConvert.SerializeObject(mensaje);
+                string json = JsonConvert.SerializeObject(mensaje) + "\n";
                 byte[] datos = Encoding.UTF8.GetBytes(json);
-                cliente.stream.Write(datos, 0, datos.Length);
+                string preview = json.Length > 200 ? json.Substring(0, 200) + "..." : json;
+                Debug.Log($"EnviarACliente id={cliente.id} tipo={mensaje.tipo} bytes={datos.Length} payload={preview}");
+                lock (cliente.writeLock)
+                {
+                    cliente.stream.Write(datos, 0, datos.Length);
+                    cliente.stream.Flush();
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.LogError($"Error enviando a cliente {cliente.id}: {ex}");
+                // Marcar cliente para remoción
                 cliente.conectado = false;
+                try { RemoverCliente(cliente); } catch (Exception) { }
             }
         }
 
@@ -245,28 +369,63 @@ namespace CrazyRisk.Red
             }
             catch { }
 
-            clientes.Remove(cliente);
+            lock (clientesLock)
+            {
+                clientes.Remove(cliente);
+            }
 
-            UnityMainThreadDispatcher.Instance().Enqueue(() => {
+            dispatcher?.Enqueue(() => {
                 OnClienteDesconectado?.Invoke();
             });
 
-            Debug.Log($"Cliente {cliente.id} desconectado. Quedan: {clientes.Count + 1} jugadores");
+            int restantes;
+            lock (clientesLock) { restantes = clientes.Count; }
+            Debug.Log($"Cliente {cliente.id} desconectado. Quedan: {restantes + 1} jugadores");
+
+            try
+            {
+                // esperar que el hilo cliente termine
+                if (cliente.hilo != null && cliente.hilo.IsAlive)
+                {
+                    if (!cliente.hilo.Join(500))
+                    {
+                        Debug.LogWarning($"El hilo del cliente {cliente.id} no terminó en 500ms");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Error esperando hilo cliente {cliente.id}: {ex}");
+            }
         }
 
         public void DetenerServidor()
         {
+            // Señalar cierre ordenado
+            solicitarCierreServidor = true;
             activo = false;
 
-            foreach (var cliente in clientes)
+            List<ClienteConectado> copia;
+            lock (clientesLock) { copia = new List<ClienteConectado>(clientes); }
+            foreach (var cliente in copia)
                 RemoverCliente(cliente);
 
             try
             {
                 servidor?.Stop();
-                hiloServidor?.Abort();
+                // esperar a que el hilo servidor termine
+                if (hiloServidor != null && hiloServidor.IsAlive)
+                {
+                    if (!hiloServidor.Join(500))
+                    {
+                        Debug.LogWarning("El hilo del servidor no terminó en 500ms");
+                    }
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Error deteniendo servidor limpiamente: {ex}");
+            }
 
             Debug.Log("Servidor detenido");
         }
@@ -300,7 +459,7 @@ namespace CrazyRisk.Red
                 datos = cliente.id.ToString()
             };
 
-            UnityMainThreadDispatcher.Instance().Enqueue(() => {
+            dispatcher?.Enqueue(() => {
                 OnMensajeRecibido?.Invoke(solicitud);
             });
         }
@@ -318,13 +477,16 @@ namespace CrazyRisk.Red
 
         private void DistribuirMensaje(MensajeRed mensaje, int excluirId = -1)
         {
-            foreach (var cliente in clientes)
+            lock (clientesLock)
             {
-                if (excluirId == -1 || cliente.id != excluirId)
+                foreach (var cliente in clientes)
                 {
-                    if (cliente.conectado)
+                    if (excluirId == -1 || cliente.id != excluirId)
                     {
-                        EnviarACliente(cliente, mensaje);
+                        if (cliente.conectado)
+                        {
+                            EnviarACliente(cliente, mensaje);
+                        }
                     }
                 }
             }
@@ -338,7 +500,11 @@ namespace CrazyRisk.Red
 
         public void EnviarEstadoACliente(int clienteId, EstadoJuego estado)
         {
-            ClienteConectado cliente = clientes.Find(c => c.id == clienteId);
+            ClienteConectado cliente = null;
+            lock (clientesLock)
+            {
+                cliente = clientes.Find(c => c.id == clienteId);
+            }
             if (cliente != null)
             {
                 MensajeRed mensaje = new MensajeRed
@@ -347,17 +513,32 @@ namespace CrazyRisk.Red
                     datos = JsonConvert.SerializeObject(estado),
                     jugadorId = 1
                 };
-                EnviarACliente(cliente, mensaje);
+                try
+                {
+                    EnviarACliente(cliente, mensaje);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Error al enviar estado al cliente {clienteId}: {ex.Message}");
+                }
             }
         }
 
         public List<string> GetNombresClientes()
         {
             List<string> nombres = new List<string>();
-            foreach (var cliente in clientes)
-                if (!string.IsNullOrEmpty(cliente.nombre))
-                    nombres.Add(cliente.nombre);
+            lock (clientesLock)
+            {
+                foreach (var cliente in clientes)
+                    if (!string.IsNullOrEmpty(cliente.nombre))
+                        nombres.Add(cliente.nombre);
+            }
             return nombres;
+        }
+
+        public string GetNombreHost()
+        {
+            return nombreHost;
         }
 
         void OnDestroy()

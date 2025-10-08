@@ -296,6 +296,11 @@ namespace CrazyRisk.LogicaJuego
         public Jugador GetJugadorActual() => jugadores[jugadorActualIndex];
 
         /// <summary>
+        /// Indica si el manejador de turnos está inicializado con una lista de jugadores válida.
+        /// </summary>
+        public bool TieneJugadores() => jugadores != null && jugadores.getSize() > 0;
+
+        /// <summary>
         /// Devuelve la fase actual del turno.
         /// </summary>
         public FaseTurno GetFaseActual() => faseActual;
@@ -330,5 +335,25 @@ namespace CrazyRisk.LogicaJuego
         public bool EsTurnoNeutral() => GetJugadorActual().getEsNeutral();
 
         public bool SeRealizoAtaqueEnEsteTurno() => ataqueRealizadoEnEsteTurno;
+
+        /// <summary>
+        /// Establece el jugador actual por su ID (1..N). Útil para sincronización desde red.
+        /// </summary>
+        public void SetJugadorActualPorId(int jugadorId)
+        {
+            if (jugadores == null || jugadores.getSize() == 0) return;
+
+            for (int i = 0; i < jugadores.getSize(); i++)
+            {
+                if (jugadores[i].getId() == jugadorId)
+                {
+                    jugadorActualIndex = i;
+                    IniciarTurno();
+                    Debug.Log($"ManejadorTurnos: jugador actual fijado a ID {jugadorId} (index {i})");
+                    return;
+                }
+            }
+            Debug.LogWarning($"ManejadorTurnos: no se encontró jugador con ID {jugadorId}");
+        }
     }
 }

@@ -110,7 +110,7 @@ namespace CrazyRisk.Managers
                 territorioDefensorSeleccionado = null;
             }
         }
-       
+
         /// <summary>
         /// Busca y asigna referencias a GameManager y ManejadorTurnos.
         /// </summary>
@@ -203,7 +203,7 @@ namespace CrazyRisk.Managers
         }
 
         /// <summary>
-        /// Restaura el color original del territorio al quitar el mouse.
+        /// Restaura el color original del territorio al quitar el mouse. Hover solo afecta visual.
         /// </summary>
         void OnMouseExit()
         {
@@ -212,34 +212,31 @@ namespace CrazyRisk.Managers
         }
 
         /// <summary>
-        /// Maneja el clic sobre el territorio, gestionando la acción según la fase del juego.
+        /// Maneja interacciones completas (colocación, refuerzos, ataque, planeación) cuando el usuario hace click.
+        /// Se usa OnMouseUpAsButton para imitar comportamiento de click y evitar disparos por hover.
         /// </summary>
-        void OnMouseDown()
+        void OnMouseUpAsButton()
         {
-            Debug.Log($"Click detectado en: {gameObject.name}");
-
             if (gameManager == null)
+                BuscarReferencias();
+
+            // Permitir interacción si estamos en fase de preparación independientemente del turno.
+            if (gameManager != null && gameManager.EstaEnFasePreparacion())
             {
-                Debug.LogError("GameManager no asignado");
+                ManejarFasePreparacion();
                 return;
             }
 
-            if (gameManager.EsJuegoEnRed() && !gameManager.EsMiTurno())
+            // Si es juego en red, bloquear si no es tu turno (solo fuera de preparación)
+            if (gameManager != null && gameManager.EsJuegoEnRed() && !gameManager.EsMiTurno())
             {
                 ManagerSonidos.Instance?.ReproducirError();
                 Debug.LogWarning("No es tu turno. Espera tu oportunidad.");
                 return;
             }
 
-            if (gameManager.EstaEnFasePreparacion())
-            {
-                ManejarFasePreparacion();
-                return;
-            }
-
             if (manejadorTurnos == null)
             {
-                Debug.Log("ManejadorTurnos era null, buscando...");
                 manejadorTurnos = FindObjectOfType<ManejadorTurnos>();
             }
 
@@ -264,7 +261,7 @@ namespace CrazyRisk.Managers
             }
 
             ManejadorTurnos.FaseTurno faseActual = manejadorTurnos.GetFaseActual();
-            Debug.Log($"Fase actual: {faseActual}");
+            Debug.Log($"Fase actual (click): {faseActual}");
 
             switch (faseActual)
             {

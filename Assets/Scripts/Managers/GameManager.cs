@@ -65,6 +65,18 @@ namespace CrazyRisk.Managers
             manejadorPlaneacion = new ManejadorPlaneacion();
 
             VerificarJuegoEnRed();
+            // Asegurar que exista un ManejadorTurnos (algunas escenas pueden no tenerlo en el inspector)
+            if (manejadorTurnos == null)
+            {
+                manejadorTurnos = FindObjectOfType<ManejadorTurnos>();
+                if (manejadorTurnos == null)
+                {
+                    GameObject mt = new GameObject("ManejadorTurnos");
+                    manejadorTurnos = mt.AddComponent<ManejadorTurnos>();
+                    Debug.Log("ManejadorTurnos creado automáticamente por GameManager");
+                }
+            }
+
             InicializarJuego();
 
             InvokeRepeating("VerificarEstadoPartida", 2f, 2f);
@@ -358,8 +370,8 @@ namespace CrazyRisk.Managers
 
         private void InicializarJuegoEnRed()
         {
-            string nombre1 = nombreJugador1;  
-            string nombre2 = nombreJugador2;  
+            string nombre1 = nombreJugador1;
+            string nombre2 = nombreJugador2;
 
             bool esServidor = PlayerPrefs.GetInt("EsServidor", 1) == 1;
             string nombreRed = PlayerPrefs.GetString("NombreJugador", "Jugador1");
@@ -448,7 +460,7 @@ namespace CrazyRisk.Managers
             {
                 if (territorio != null)
                 {
-                    territorio.enabled = false; 
+                    territorio.enabled = false;
                 }
             }
 
@@ -786,6 +798,52 @@ namespace CrazyRisk.Managers
                 }
             }
 
+            // Rellenar nombres de jugadores y turno actual (defensivo)
+            int totalJugadores = 0;
+            Lista<Jugador> jugadoresList = null;
+            try
+            {
+                jugadoresList = inicializadorJuego != null ? inicializadorJuego.getJugadores() : null;
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"ObtenerEstadoActual: no se pudo obtener lista de jugadores: {ex.Message}");
+            }
+
+            if (jugadoresList != null)
+            {
+                try
+                {
+                    totalJugadores = jugadoresList.getSize();
+                    estado.cantidadJugadores = totalJugadores;
+                    estado.nombresJugadores = new string[totalJugadores];
+                    for (int i = 0; i < totalJugadores; i++)
+                    {
+                        var j = jugadoresList[i];
+                        estado.nombresJugadores[i] = j != null ? j.getNombre() : $"Jugador{i + 1}";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"ObtenerEstadoActual: error llenando nombresJugadores: {ex.Message}");
+                }
+            }
+
+            // Turno actual
+            try
+            {
+                if (manejadorTurnos != null && manejadorTurnos.TieneJugadores())
+                {
+                    var jugadorActual = manejadorTurnos.GetJugadorActual();
+                    if (jugadorActual != null)
+                        estado.turnoActual = jugadorActual.getId();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"ObtenerEstadoActual: error al obtener turno actual: {ex.Message}");
+            }
+
             return estado;
         }
 
@@ -805,11 +863,54 @@ namespace CrazyRisk.Managers
 
             ActualizarColoresTerritorios();
             ActualizarVisualizacionCompleta();
+
+            // Aplicar nombres de jugadores si vienen en el estado
+            try
+            {
+                if (estado.nombresJugadores != null)
+                {
+                    if (estado.nombresJugadores.Length > 0 && jugador1 != null)
+                        jugador1.setNombre(estado.nombresJugadores[0]);
+                    if (estado.nombresJugadores.Length > 1 && jugador2 != null)
+                        jugador2.setNombre(estado.nombresJugadores[1]);
+                    if (estado.nombresJugadores.Length > 2)
+                    {
+                        if (jugador3 != null)
+                            jugador3.setNombre(estado.nombresJugadores[2]);
+                        else if (jugadorNeutral != null)
+                            jugadorNeutral.setNombre(estado.nombresJugadores[2]);
+                    }
+                }
+
+                // Aplicar turno actual proporcionado por el servidor
+                if (estado.turnoActual > 0)
+                {
+                    ActualizarTurnoDesdeRed(estado.turnoActual);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error aplicando nombres/turno desde estado completo: {ex.Message}");
+            }
         }
 
         public void ActualizarTurnoDesdeRed(int jugadorIdEnTurno)
         {
             Debug.Log($"Turno actualizado desde red: Jugador {jugadorIdEnTurno}");
+            // Aplicar en el manejador de turnos si está inicializado
+            if (manejadorTurnos != null)
+            {
+                manejadorTurnos.SetJugadorActualPorId(jugadorIdEnTurno);
+                ActualizarPanelDatos();
+                ActualizarVisualizacionCompleta();
+            }
+
+            // Si existe administradorRed, actualizar su estado interno
+            if (administradorRed != null)
+            {
+                // administradorRed mantiene su propio jugadorEnTurno; si hay setter público podría usarse.
+                Debug.Log($"GameManager: notificado CAMBIO_TURNO a {jugadorIdEnTurno}");
+            }
         }
 
         public bool EsMiTurno()

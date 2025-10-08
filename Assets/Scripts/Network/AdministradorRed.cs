@@ -64,11 +64,15 @@ namespace CrazyRisk.Red
         private void IniciarComoCliente()
         {
             string ipServidor = PlayerPrefs.GetString("IP", "127.0.0.1");
+            int puerto = PlayerPrefs.GetInt("PuertoServidor", 12345);
 
             cliente = gameObject.AddComponent<ClienteRisk>();
             cliente.OnMensajeRecibido = ProcesarMensajeCliente;
             cliente.OnConectado += OnConectadoCliente;
             cliente.OnDesconectado += OnDesconectadoCliente;
+
+            // Configurar puerto antes de conectar
+            cliente.SetPuertoServidor(puerto);
 
             if (cliente.ConectarAServidor(ipServidor, nombreJugador))
             {
@@ -121,16 +125,19 @@ namespace CrazyRisk.Red
             switch (mensaje.tipo)
             {
                 case "CONEXION_ACEPTADA":
+                    Debug.Log($"CONEXION_ACEPTADA payload: {mensaje.datos}");
                     DatosJugador datosAceptacion = JsonConvert.DeserializeObject<DatosJugador>(mensaje.datos);
                     miJugadorId = datosAceptacion.id;
                     Debug.Log($"Me asignaron ID: {miJugadorId}");
                     break;
 
                 case "ACTUALIZAR_NOMBRES":
+                    Debug.Log($"ACTUALIZAR_NOMBRES payload: {mensaje.datos}");
                     ActualizarNombresJugadores(mensaje.datos);
                     break;
 
                 case "ESTADO_COMPLETO":
+                    Debug.Log($"ESTADO_COMPLETO payload length: {mensaje.datos?.Length}");
                     ActualizarEstadoLocal(mensaje);
                     break;
 
@@ -316,6 +323,34 @@ namespace CrazyRisk.Red
         private void OnClienteConectadoServidor(string nombreCliente)
         {
             Debug.Log($"Cliente conectado al administrador: {nombreCliente}");
+
+            // Aplicar actualización de nombres con un frame de retraso para evitar sobrescrituras
+            StartCoroutine(DelayedApplyHostNamesAndState());
+        }
+
+        private System.Collections.IEnumerator DelayedApplyHostNamesAndState()
+        {
+            yield return null; // esperar un frame
+
+            try
+            {
+                string serverName = servidor != null ? servidor.GetNombreHost() : PlayerPrefs.GetString("NombreJugador", "Servidor");
+                var nombresList = new System.Collections.Generic.List<string>();
+                nombresList.Add(serverName);
+                if (servidor != null)
+                {
+                    var clientesNombres = servidor.GetNombresClientes();
+                    foreach (var n in clientesNombres)
+                        nombresList.Add(n);
+                }
+                string json = JsonConvert.SerializeObject(nombresList.ToArray());
+                ActualizarNombresJugadores(json);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error actualizando nombres en host (delayed): {ex}");
+            }
+
             EnviarEstadoCompleto();
         }
 

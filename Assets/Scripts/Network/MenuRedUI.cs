@@ -91,6 +91,10 @@ namespace CrazyRisk.Red
 
             esServidor = true;
 
+            // Guardar nombre del host para que ServidorRisk use este nombre al enviar la lista
+            PlayerPrefs.SetString("NombreJugador", nombreLocal);
+            PlayerPrefs.Save();
+
             // Crear componente servidor
             servidor = gameObject.AddComponent<ServidorRisk>();
             ConfigurarEventosServidor();
