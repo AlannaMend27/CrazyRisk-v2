@@ -216,6 +216,32 @@ namespace CrazyRisk.LogicaJuego
                 }
             }
 
+            string nombreAtacanteFinal = territorioAtacante.Nombre;
+            string nombreDefensorFinal = territorioDefensor.Nombre;
+            
+            // Mostrar los dados REALES en el visualizador
+            VisualizadorDados visualizador = UnityEngine.Object.FindObjectOfType<VisualizadorDados>();
+
+            Debug.Log($"Visualizador encontrado: {visualizador != null}"); // ← AGREGAR ESTO
+
+            if (visualizador != null)
+            {
+                Debug.Log($"Llamando a MostrarCombateConResultados con dados: [{string.Join(", ", resultadosAtacante)}] vs [{string.Join(", ", resultadosDefensor)}]"); // ← Y ESTO
+                
+                visualizador.MostrarCombateConResultados(
+                    nombreAtacanteFinal,
+                    nombreDefensorFinal,
+                    resultadosAtacante,
+                    resultadosDefensor,
+                    resultado.tropasPerdidasAtacante,
+                    resultado.tropasPerdidasDefensor
+                );
+            }
+            else
+            {
+                Debug.LogError("❌ VisualizadorDados NO encontrado en la escena!"); // ← Y ESTO
+            }
+
             return resultado;
         }
 

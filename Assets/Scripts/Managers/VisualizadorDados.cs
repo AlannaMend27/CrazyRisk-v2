@@ -57,10 +57,16 @@ namespace CrazyRisk.Managers
             int bajasAtacante,
             int bajasDefensor)
         {
+            Debug.Log($"🎲 MostrarCombateConResultados llamado: {nombreAtacante} vs {nombreDefensor}"); // ← AGREGAR
+            Debug.Log($"Dados atacante: [{string.Join(", ", resultadosAtacante)}]"); // ← AGREGAR
+            Debug.Log($"Dados defensor: [{string.Join(", ", resultadosDefensor)}]"); // ← AGREGAR
+            Debug.Log($"Panel combate es null: {panelCombate == null}"); // ← AGREGAR
+
             if (panelCombate != null)
             {
                 panelCombate.SetActive(true);
                 panelCombate.transform.SetAsLastSibling();
+                Debug.Log("✅ Panel activado"); // ← AGREGAR
             }
 
             if (textoAtaque != null)

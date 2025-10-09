@@ -85,6 +85,14 @@ namespace CrazyRisk.LogicaJuego
             faseActual = FaseTurno.Refuerzos;
             ataqueRealizadoEnEsteTurno = false;
 
+            // prueba para intercambio de tarjetas (da 3 tarjetas al jugador)
+            /*
+            if (gameManager != null)
+            {
+                gameManager.DarTresTarjetasAJugadorActual();
+            }
+            */
+
             // Calcular refuerzos
             refuerzosDisponibles = manejadorRefuerzos.CalcularRefuerzos(
                 jugadorActual.getCantidadTerritorios(),

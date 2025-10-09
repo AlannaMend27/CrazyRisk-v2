@@ -78,7 +78,6 @@ namespace CrazyRisk.Managers
             }
 
             InicializarJuego();
-
             InvokeRepeating("VerificarEstadoPartida", 2f, 2f);
         }
 
@@ -363,9 +362,9 @@ namespace CrazyRisk.Managers
             distribuidor.OnCambioTurno -= ActualizarPanelDatos;
             distribuidor.OnPreparacionCompletada -= FinalizarFasePreparacion;
 
-            ActualizarPanelDatos();
-            ActualizarTerritoriosJugadores();
             InicializarSistemaTurnos();
+            ActualizarTerritoriosJugadores();
+            ActualizarPanelDatos();
         }
 
         private void InicializarJuegoEnRed()
@@ -929,5 +928,86 @@ namespace CrazyRisk.Managers
         {
             TerritorioUI.LimpiarSeleccionesEstaticas();
         }
+
+        //METODOS UTILES PARA DEFENSA DE CODIGO
+
+        //Estos metodos abren la parte de  
+
+        /*
+        public void AbrirVentanaVictoriaManual()
+        {
+
+            if (panelVictoria != null)
+            {
+                panelVictoria.SetActive(true);
+                BloquearInteraccionTerritorios();
+                if (textoGanador != null)
+                {
+                    textoGanador.text = "¡Victoria de prueba!";
+                }
+            }
+        }
+        */
+
+        public void AbrirVentanaVictoriaManual()
+        {
+            if (inicializadorJuego == null || detectorVictoria == null)
+                return;
+
+            // Obtén la lista de jugadores actual
+            Lista<Jugador> jugadores = inicializadorJuego.getJugadores();
+            // Verifica el estado de la partida
+            EstadoPartida estado = detectorVictoria.VerificarEstadoPartida(jugadores);
+
+            if (estado.juegoTerminado)
+            {
+                // Si hay ganador, muestra el panel de victoria y bloquea la interacción
+                if (panelVictoria != null)
+                {
+                    panelVictoria.SetActive(true);
+                    BloquearInteraccionTerritorios();
+                    if (textoGanador != null && estado.ganador != null)
+                    {
+                        textoGanador.text = $"Ha ganado {estado.ganador.getNombre()}\n¡Es toda una máquina!";
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log("No hay ganador aún.");
+            }
+        }
+
+        // Desactiva la interacción de todos los territorios
+        public void BloquearInteraccionTerritorios()
+        {
+            foreach (var territorio in FindObjectsOfType<TerritorioUI>())
+            {
+                territorio.gameObject.SetActive(false);
+            }
+        }
+
+        // Estos metodos son utilies para verificar el intercambio de tarjetas
+        public void DarTresTarjetasAJugadorActual()
+        {
+            Jugador jugador = manejadorTurnos.GetJugadorActual();
+            if (jugador == null)
+            {
+                Debug.LogWarning("No hay jugador actual para dar tarjetas.");
+                return;
+            }
+
+            // Crea 3 tarjetas de prueba (ajusta los tipos según tu enum)
+            Tarjeta tarjeta1 = new Tarjeta(TipoTarjeta.Infanteria, "Prueba1");
+            Tarjeta tarjeta2 = new Tarjeta(TipoTarjeta.Caballeria, "Prueba2");
+            Tarjeta tarjeta3 = new Tarjeta(TipoTarjeta.Artilleria, "Prueba3");
+
+            jugador.getTarjetas().Agregar(tarjeta1);
+            jugador.getTarjetas().Agregar(tarjeta2);
+            jugador.getTarjetas().Agregar(tarjeta3);
+
+            Debug.Log("Se han dado 3 tarjetas al jugador actual.");
+        }
+
     }
 }

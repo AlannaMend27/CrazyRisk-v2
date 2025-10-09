@@ -65,25 +65,29 @@ public class UIController : MonoBehaviour
         var jugador = manejadorTurnos.GetJugadorActual();
         if (jugador == null || jugador.getEsNeutral()) return;
 
-        // Buscar tr�o v�lido autom�ticamente
+        // Buscar trío válido automáticamente
         int[] trio = manejadorTarjetas.EncontrarTrioValido(jugador);
 
         if (trio == null)
         {
-            Debug.LogWarning($"{jugador.getNombre()} no tiene un tr�o v�lido para intercambiar");
+            Debug.LogWarning($"{jugador.getNombre()} no tiene un trío válido para intercambiar");
             return;
         }
 
-        // Intercambiar autom�ticamente
-        bool exito = manejadorTarjetas.IntentarIntercambio(jugador, trio[0], trio[1], trio[2]);
+        // Intercambiar y obtener la cantidad de refuerzos
+        int refuerzosObtenidos = manejadorTarjetas.IntercambiarYObtenerRefuerzos(jugador, trio[0], trio[1], trio[2]);
 
-        if (exito)
+        if (refuerzosObtenidos > 0)
         {
-            // Agregar refuerzos al jugador actual
-            int refuerzosActuales = manejadorTurnos.GetRefuerzosDisponibles();
-            // Los refuerzos ya fueron calculados en ManejadorRefuerzos.IntercambiarTarjetas
-
-            Debug.Log("Intercambio exitoso. Coloca tus refuerzos adicionales.");
+            // Agregar los refuerzos al turno actual
+            manejadorTurnos.AgregarRefuerzosDinamicos(refuerzosObtenidos);
+            
+            Debug.Log($"¡Intercambio exitoso! {jugador.getNombre()} obtuvo {refuerzosObtenidos} refuerzos.");
+            Debug.Log("Coloca tus refuerzos adicionales en tus territorios.");
+        }
+        else
+        {
+            Debug.LogError("Error al intercambiar tarjetas");
         }
     }
 

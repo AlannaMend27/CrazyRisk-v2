@@ -117,7 +117,10 @@ namespace CrazyRisk.Managers
         /// </summary>
         private void MostrarPreguntaDefender()
         {
-            int maxDadosDefensor = Mathf.Min(tropasDefensor, 2);
+            //obtener las tropas actuales del defensor
+            var territorioDefensorLogico = territorioDefensor.GetTerritorioLogico();
+            int tropasActualesDefensor = territorioDefensorLogico.CantidadTropas;
+            int maxDadosDefensor = Mathf.Min(tropasActualesDefensor, 2);
 
             if (textoInfoDefensor != null)
                 textoInfoDefensor.text = $"{nombreDefensor} se defiende\nTropas disponibles: {tropasDefensor}";
@@ -153,30 +156,11 @@ namespace CrazyRisk.Managers
                 return;
             }
 
-            // Guardar estados antes del ataque
-            var territorioAtacanteLogico = territorioAtacante.GetTerritorioLogico();
-            var territorioDefensorLogico = territorioDefensor.GetTerritorioLogico();
-
-            int tropasAtacantesAntes = territorioAtacanteLogico.CantidadTropas;
-            int tropasDefensorAntes = territorioDefensorLogico.CantidadTropas;
-
             // Ejecutar ataque
             ManejadorAtaques.ResultadoAtaque resultado = manejadorAtaques.EjecutarAtaqueConDados(dadosAtacante, dadosDefensor);
 
             if (resultado != null)
             {
-
-                // Mostrar dados PRIMERO (antes de actualizar UI)
-                if (visualizadorDados != null)
-                {
-                    visualizadorDados.MostrarCombateConDados(
-                        nombreAtacante,
-                        nombreDefensor,
-                        dadosAtacante,
-                        dadosDefensor
-                    );
-                }
-
                 // actualizar la interfaz
                 territorioAtacante.ActualizarInterfaz();
                 territorioDefensor.ActualizarInterfaz();
